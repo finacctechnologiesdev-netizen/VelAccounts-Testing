@@ -45,9 +45,9 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
         </ng-container>
         <ng-container matColumnDef="Cash_Type">
           <th mat-header-cell *matHeaderCellDef>Cash Type</th>
-          <td mat-cell *matCellDef="let r">
-            <span class="chip" [class.chip-in]="r.Cash_Type === 'IN'" [class.chip-out]="r.Cash_Type === 'OUT'">
-              {{ r.Cash_Type === 'IN' ? 'Credit (IN)' : 'Debit (OUT)' }}
+          <td mat-cell *matCellDef="let r">            
+            <span class="chip" [class.chip-in]="r.Cash_Type.trim() === 'IN'" [class.chip-out]="r.Cash_Type.trim() === 'OUT'">
+              {{ r.Cash_Type.trim() === 'IN' ? 'Credit (IN)' : 'Debit (OUT)' }}
             </span>
           </td>
         </ng-container>
