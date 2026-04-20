@@ -1,163 +1,150 @@
-<mat-toolbar color="primary">
-  <mat-icon>account_balance</mat-icon>
-  <span style="margin-left:8px">VelAccounts</span>
-  <span class="spacer"></span>
-  <span class="user-info">{{ user()?.User_Name }}</span>
-  <button mat-icon-button (click)="logout()" matTooltip="Logout">
-    <mat-icon>logout</mat-icon>
-  </button>
-</mat-toolbar>
+<div class="account-select-container">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-brand">
+      <span class="material-icons brand-icon">account_balance</span>
+      <span class="brand-title">VelAccounts</span>
+    </div>
+    <div class="header-actions">
+      <span class="user-name">{{ user()?.User_Name }}</span>
+      <button class="icon-btn logout-btn" (click)="logout()" title="Logout">
+        <span class="material-icons">logout</span>
+      </button>
+    </div>
+  </header>
 
-<div class="select-page">
-  <mat-card class="select-card">
-
-    <!-- Header row -->
-    <mat-card-header class="card-header">
-      <div class="header-left">
-        <mat-card-title>Books of Accounts</mat-card-title>
-        <mat-card-subtitle>Select a book to start working</mat-card-subtitle>
-      </div>
-      @if (isAdmin()) {
-        <button mat-flat-button color="primary" (click)="openCreateForm()">
-          <mat-icon>add</mat-icon> New Account
-        </button>
-      }
-    </mat-card-header>
-
-    <mat-divider />
-
-    <mat-card-content class="card-content">
-
-      @if (loading()) {
-        <mat-progress-bar mode="indeterminate" />
-      }
-
-      @if (!loading() && accounts().length === 0) {
-        <div class="empty">
-          <mat-icon class="empty-icon">menu_book</mat-icon>
-          <p>No books of accounts yet.</p>
-          @if (isAdmin()) {
-            <button mat-flat-button color="primary" (click)="openCreateForm()">
-              <mat-icon>add</mat-icon> Create First Account
-            </button>
-          } @else {
-            <p class="hint">Contact your administrator to create a book of accounts.</p>
-          }
+  <!-- Main Content Layout -->
+  <div class="main-layout">
+    
+    <!-- Left Pane: Accounts List -->
+    <div class="list-section">
+      <div class="section-header">
+        <div class="header-texts">
+          <h2>Books of Accounts</h2>
+          <p>Select a book to start working</p>
         </div>
-      }
+        @if (isAdmin()) {
+          <button class="action-btn primary mobile-only" (click)="openCreateForm()">
+            <span class="material-icons">add</span> New
+          </button>
+        }
+      </div>
 
-      @for (acc of accounts(); track acc.AccSno) {
-        <div class="account-row" (click)="select(acc)">
-          <div class="acc-icon">
-            <mat-icon>menu_book</mat-icon>
+      <div class="list-content" [class.loading]="loading()">
+        @if (loading()) {
+          <div class="loader-container">
+            <div class="spinner loader-spinner"></div>
           </div>
-          <div class="acc-info">
-            <span class="acc-name">{{ acc.Acc_Name }}</span>
-            <span class="acc-code">{{ acc.Acc_Code }}</span>
-            @if (acc.Remarks) {
-              <span class="acc-remarks">{{ acc.Remarks }}</span>
+        }
+        
+        @if (!loading() && accounts().length === 0) {
+          <div class="empty-state">
+            <span class="material-icons empty-icon">menu_book</span>
+            <p>No books of accounts yet.</p>
+            @if (isAdmin()) {
+              <button class="action-btn primary" (click)="openCreateForm()">
+                <span class="material-icons">add</span> Create First Account
+              </button>
+            } @else {
+              <p class="hint-text">Contact your administrator to create a book of accounts.</p>
             }
           </div>
-          <mat-icon class="acc-arrow">chevron_right</mat-icon>
+        }
 
-          @if (isAdmin()) {
-            <button mat-icon-button
-                    matTooltip="Edit"
-                    (click)="openEditForm(acc, $event)"
-                    class="action-btn">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button
-                    matTooltip="Delete"
-                    color="warn"
-                    (click)="deleteAccount(acc, $event)"
-                    class="action-btn">
-              <mat-icon>delete</mat-icon>
-            </button>
+        <div class="accounts-list">
+          @for (acc of accounts(); track acc.AccSno) {
+            <div class="account-item" (click)="select(acc)">
+              <div class="acc-avatar">
+                <span class="material-icons">menu_book</span>
+              </div>
+              <div class="acc-details">
+                <span class="acc-name">{{ acc.Acc_Name }}</span>
+                <span class="acc-code">{{ acc.Acc_Code }}</span>
+                @if (acc.Remarks) {
+                  <span class="acc-remarks">{{ acc.Remarks }}</span>
+                }
+              </div>
+              
+              <div class="acc-actions">
+                @if (isAdmin()) {
+                  <button class="icon-btn edit-btn" (click)="openEditForm(acc, $event)" title="Edit">
+                    <span class="material-icons">edit</span>
+                  </button>
+                  <button class="icon-btn delete-btn" (click)="deleteAccount(acc, $event)" title="Delete">
+                    <span class="material-icons">delete</span>
+                  </button>
+                }
+                <span class="material-icons arrow-icon">chevron_right</span>
+              </div>
+            </div>
           }
         </div>
-        <mat-divider />
-      }
+      </div>
+    </div>
 
-    </mat-card-content>
-  </mat-card>
+    <!-- Right Pane: Form -->
+    <div class="form-section" [class.show-mobile]="formVisible">
+      <div class="form-card">
+        <div class="form-header">
+          <h2>
+            <span class="material-icons header-icon">menu_book</span>
+            {{ editingAccount ? 'Edit' : 'New' }} Book
+          </h2>
+          <button class="icon-btn close-btn mobile-only" (click)="closeFormPopup()" title="Close">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="saveAccount()" class="account-form">
+          <div class="va-form-group">
+            <label class="va-label" for="accCode">Account Code</label>
+            <div class="va-input-wrapper has-prefix">
+              <span class="material-icons va-prefix-icon">tag</span>
+              <input id="accCode" class="va-input" formControlName="Acc_Code" placeholder="e.g. FY2425" />
+            </div>
+            @if (form.controls.Acc_Code.touched && form.controls.Acc_Code.hasError('required')) {
+              <div class="va-error-msg"><span class="material-icons">error_outline</span> Code is required</div>
+            }
+          </div>
+
+          <div class="va-form-group">
+            <label class="va-label" for="accName">Account Name</label>
+            <div class="va-input-wrapper has-prefix">
+              <span class="material-icons va-prefix-icon">title</span>
+              <input id="accName" class="va-input" formControlName="Acc_Name" placeholder="e.g. Financial Year 2024-25" />
+            </div>
+            @if (form.controls.Acc_Name.touched && form.controls.Acc_Name.hasError('required')) {
+              <div class="va-error-msg"><span class="material-icons">error_outline</span> Name is required</div>
+            }
+          </div>
+
+          <div class="va-form-group">
+            <label class="va-label" for="remarks">Remarks</label>
+            <div class="va-input-wrapper has-prefix">
+              <span class="material-icons va-prefix-icon">notes</span>
+              <input id="remarks" class="va-input" formControlName="Remarks" placeholder="Optional notes" />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            @if (editingAccount) {
+              <button type="button" class="action-btn secondary form-cancel-btn" (click)="cancelEdit()">Cancel</button>
+            }
+            <button type="submit" [disabled]="saving()" class="submit-btn" [class.flex-btn]="editingAccount">
+              @if (saving()) {
+                <div class="spinner"></div>
+              } @else {
+                {{ editingAccount ? 'Update Account' : 'Create Account' }}
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Mobile overlay backdrop -->
+    @if (formVisible) {
+      <div class="mobile-backdrop mobile-only" (click)="closeFormPopup()"></div>
+    }
+  </div>
 </div>
-
-<style>
-.spacer { flex: 1; }
-.user-info { margin-right: 8px; font-size: 14px; }
-
-.select-page {
-  display: flex;
-  justify-content: center;
-  padding: 48px 16px;
-  background: #f5f5f5;
-  min-height: calc(100vh - 64px);
-  box-sizing: border-box;
-}
-
-.select-card {
-  width: 100%;
-  max-width: 600px;
-  height: fit-content;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 16px 12px;
-  flex-direction: row !important;
-}
-
-.header-left { display: flex; flex-direction: column; }
-
-.card-content { padding: 0 !important; }
-
-/* Account row */
-.account-row {
-  display: flex;
-  align-items: center;
-  padding: 14px 16px;
-  cursor: pointer;
-  transition: background 0.15s;
-  gap: 12px;
-}
-.account-row:hover { background: rgba(0,0,0,.04); }
-
-.acc-icon {
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  background: #e8eaf6;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.acc-icon mat-icon { color: #3949ab; }
-
-.acc-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  overflow: hidden;
-}
-.acc-name    { font-weight: 500; font-size: 15px; }
-.acc-code    { font-size: 12px; color: #777; }
-.acc-remarks { font-size: 11px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.acc-arrow { color: #bbb; flex-shrink: 0; }
-.action-btn { flex-shrink: 0; }
-
-/* Empty state */
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 56px 32px;
-  gap: 12px;
-  color: #888;
-  text-align: center;
-}
-.empty-icon { font-size: 56px; width: 56px; height: 56px; color: #ccc; }
-.hint       { font-size: 13px; color: #aaa; margin: 0; }
-</style>

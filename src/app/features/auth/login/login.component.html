@@ -1,81 +1,83 @@
 <div class="login-page">
-  <mat-card class="login-card">
-    <mat-card-header>
-      <mat-card-title>VelAccounts</mat-card-title>
-      <mat-card-subtitle>Sign in to continue</mat-card-subtitle>
-    </mat-card-header>
+  <div class="login-card">
+    
+    <!-- Desktop Branding Section (Left Pane) -->
+    <div class="branding-section">
+      <img src="images/test-img.jpg" alt="VelAccounts Logo" class="desktop-logo" />
+    </div>
 
-    <mat-card-content>
+    <!-- Form Section (Right Pane) -->
+    <div class="form-section">
+      
+      <div class="form-header">
+        <!-- Mobile Logo: Visible only on small screens, sits left of Sign In -->
+        <img src="images/velAccount-logo.png" alt="VelAccounts Logo" class="mobile-logo" />
+        <div class="header-text">
+          <h2>Sign In</h2>
+          <p>Enter your credentials to continue</p>
+        </div>
+      </div>
+
       <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
-
-        <mat-form-field appearance="outline">
-          <mat-label>Client Code</mat-label>
-          <input matInput formControlName="Client_Code" autocomplete="organization" />
-          <mat-icon matPrefix>business</mat-icon>
-          @if (form.controls.Client_Code.hasError('required')) {
-            <mat-error>Client code is required</mat-error>
+        
+        <div class="va-form-group">
+          <label class="va-label" for="clientCode">Client Code</label>
+          <div class="va-input-wrapper has-prefix">
+            <span class="material-icons va-prefix-icon">business</span>
+            <input id="clientCode" class="va-input" formControlName="Client_Code" autocomplete="organization" placeholder="e.g. CLI-001" />
+          </div>
+          @if (form.controls.Client_Code.touched && form.controls.Client_Code.hasError('required')) {
+            <div class="va-error-msg">
+               <span class="material-icons">error_outline</span> Client code is required
+            </div>
           }
-        </mat-form-field>
+        </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Username</mat-label>
-          <input matInput formControlName="User_Name" autocomplete="username" />
-          <mat-icon matPrefix>person</mat-icon>
-          @if (form.controls.User_Name.hasError('required')) {
-            <mat-error>Username is required</mat-error>
+        <div class="va-form-group">
+          <label class="va-label" for="userName">Username</label>
+          <div class="va-input-wrapper has-prefix">
+            <span class="material-icons va-prefix-icon">person</span>
+            <input id="userName" class="va-input" formControlName="User_Name" autocomplete="username" placeholder="Enter username" />
+          </div>
+          @if (form.controls.User_Name.touched && form.controls.User_Name.hasError('required')) {
+            <div class="va-error-msg">
+               <span class="material-icons">error_outline</span> Username is required
+            </div>
           }
-        </mat-form-field>
+        </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Password</mat-label>
-          <input matInput formControlName="Password"
-                 [type]="hidePassword() ? 'password' : 'text'"
-                 autocomplete="current-password" />
-          <mat-icon matPrefix>lock</mat-icon>
-          <button mat-icon-button matSuffix type="button"
-                  (click)="hidePassword.set(!hidePassword())">
-            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-          @if (form.controls.Password.hasError('required')) {
-            <mat-error>Password is required</mat-error>
+        <div class="va-form-group">
+          <label class="va-label" for="password">Password</label>
+          <div class="va-input-wrapper has-prefix has-suffix">
+            <span class="material-icons va-prefix-icon">lock</span>
+            <input id="password" class="va-input" formControlName="Password"
+                   [type]="hidePassword() ? 'password' : 'text'"
+                   autocomplete="current-password" placeholder="Enter password" />
+            <button type="button" class="toggle-password" (click)="hidePassword.set(!hidePassword())" aria-label="Toggle visibility">
+              <span class="material-icons">{{ hidePassword() ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+          @if (form.controls.Password.touched && form.controls.Password.hasError('required')) {
+            <div class="va-error-msg">
+               <span class="material-icons">error_outline</span> Password is required
+            </div>
           }
-        </mat-form-field>
+          @if (form.controls.Password.touched && form.controls.Password.hasError('minlength')) {
+            <div class="va-error-msg">
+               <span class="material-icons">error_outline</span> Minimum 6 characters required
+            </div>
+          }
+        </div>
 
-        <button mat-flat-button color="primary" type="submit"
-                [disabled]="loading()" class="login-btn">
+        <button type="submit" [disabled]="loading()" class="submit-btn" aria-label="Sign In">
           @if (loading()) {
-            <mat-spinner diameter="20" />
+            <div class="spinner"></div>
           } @else {
             Sign In
           }
         </button>
+        
       </form>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 </div>
-
-<style>
-.login-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f5f5f5;
-}
-.login-card {
-  width: 100%;
-  max-width: 400px;
-  padding: 16px;
-}
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 16px;
-}
-.login-btn {
-  height: 48px;
-  margin-top: 8px;
-  font-size: 16px;
-}
-</style>

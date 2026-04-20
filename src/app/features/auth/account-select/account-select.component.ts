@@ -3,53 +3,47 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActiveAccountService } from '../../../core/services/active-account.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AccountsService } from '../../../core/services/api.services';
 import { Account, ApiResponse } from '../../../core/models';
 import { environment } from '../../../../environments/environment';
-import { AccountFormDialogComponent } from './account-form-dialog.component';
+import { MessageService, ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-account-select',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule,
-    MatCardModule, MatButtonModule, MatIconModule, MatListModule,
-    MatProgressSpinnerModule, MatProgressBarModule, MatToolbarModule,
-    MatDialogModule, MatFormFieldModule, MatInputModule,
-    MatDividerModule, MatMenuModule, MatTooltipModule,
+    CommonModule, ReactiveFormsModule
   ],
   templateUrl: './account-select.component.html',
+  styleUrl: './account-select.component.scss',
 })
 export class AccountSelectComponent implements OnInit {
   private readonly activeAccount = inject(ActiveAccountService);
   private readonly auth          = inject(AuthService);
   private readonly router        = inject(Router);
   private readonly http          = inject(HttpClient);
-  private readonly dialog        = inject(MatDialog);
-  private readonly snack         = inject(MatSnackBar);
   private readonly accountsSvc   = inject(AccountsService);
+  private readonly snack         = inject(MessageService);
+  private readonly confirmSvc    = inject(ConfirmationService);
+  private readonly fb            = inject(FormBuilder);
 
   readonly user     = this.auth.currentUser;
   readonly isAdmin  = this.auth.isAdmin;
   readonly loading  = signal(false);
   readonly saving   = signal(false);
   readonly accounts = signal<Account[]>([]);
+
+  // Form State
+  formVisible = false; // Used for mobile popup
+  editingAccount: Account | null = null;
+
+  form = this.fb.group({
+    Acc_Code: ['', [Validators.required, Validators.maxLength(20)]],
+    Acc_Name: ['', [Validators.required, Validators.maxLength(100)]],
+    Remarks:  ['', Validators.maxLength(100)],
+  });
 
   ngOnInit(): void { this.loadAccounts(); }
 
@@ -59,7 +53,10 @@ export class AccountSelectComponent implements OnInit {
       .get<ApiResponse<Account[]>>(`${environment.apiUrl}/accounts`)
       .subscribe({
         next:  res => { this.accounts.set(res.data ?? []); this.loading.set(false); },
-        error: ()  => this.loading.set(false),
+        error: ()  => { 
+          this.loading.set(false);
+          this.snack.add({ severity: 'error', summary: 'Error', detail: 'Failed to load accounts' });
+        },
       });
   }
 
@@ -69,21 +66,81 @@ export class AccountSelectComponent implements OnInit {
   }
 
   openCreateForm(): void {
-    this.dialog.open(AccountFormDialogComponent, { width: '480px', data: null })
-      .afterClosed().subscribe(saved => { if (saved) this.loadAccounts(); });
+    this.editingAccount = null;
+    this.form.reset();
+    this.formVisible = true;
   }
 
   openEditForm(account: Account, event: Event): void {
     event.stopPropagation();
-    this.dialog.open(AccountFormDialogComponent, { width: '480px', data: account })
-      .afterClosed().subscribe(saved => { if (saved) this.loadAccounts(); });
+    this.editingAccount = account;
+    this.form.patchValue(account);
+    this.formVisible = true;
+  }
+
+  closeFormPopup(): void {
+    this.formVisible = false;
+  }
+
+  cancelEdit(): void {
+    this.editingAccount = null;
+    this.form.reset();
+    this.closeFormPopup();
+  }
+
+  saveAccount(): void {
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    
+    this.saving.set(true);
+    const v = this.form.getRawValue();
+
+    const obs = this.editingAccount
+      ? this.accountsSvc.update(this.editingAccount.AccSno, {
+          Acc_Code: v.Acc_Code!,
+          Acc_Name: v.Acc_Name!,
+          Remarks:  v.Remarks ?? '',
+          CurrentRowVer: this.editingAccount.CurrentRowVer,
+        })
+      : this.accountsSvc.create({
+          Acc_Code: v.Acc_Code!,
+          Acc_Name: v.Acc_Name!,
+          Remarks:  v.Remarks ?? '',
+        });
+
+    obs.subscribe({
+      next: () => {
+        this.snack.add({ severity: 'success', summary: 'Success', detail: this.editingAccount ? 'Account updated.' : 'Account created.' });
+        this.saving.set(false);
+        this.closeFormPopup();
+        this.editingAccount = null;
+        this.form.reset();
+        this.loadAccounts();
+      },
+      error: () => { this.saving.set(false); },
+    });
   }
 
   deleteAccount(account: Account, event: Event): void {
     event.stopPropagation();
-    if (!confirm(`Delete "${account.Acc_Name}"? This cannot be undone.`)) return;
-    this.accountsSvc.delete(account.AccSno, account.CurrentRowVer).subscribe({
-      next: () => { this.snack.open('Account deleted.', 'OK'); this.loadAccounts(); },
+    
+    this.confirmSvc.confirm({
+      message: `Delete "${account.Acc_Name}"? This cannot be undone.`,
+      header: 'Confirm Deletion',
+      icon: 'pi pi-exclamation-triangle',
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-secondary',
+      accept: () => {
+        this.accountsSvc.delete(account.AccSno, account.CurrentRowVer).subscribe({
+          next: () => { 
+            this.snack.add({ severity: 'success', summary: 'Success', detail: 'Account deleted.' });
+            this.loadAccounts(); 
+            if (this.editingAccount?.AccSno === account.AccSno) {
+              this.editingAccount = null;
+              this.form.reset();
+            }
+          },
+        });
+      }
     });
   }
 

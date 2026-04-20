@@ -1,0 +1,224 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-color: var(--color-background);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 900px;
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-float);
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-height: 520px;
+}
+
+/* ── Desktop Left Pane (Cover) ── */
+.branding-section {
+  flex: 1 1 50%;
+  max-width: 50%;
+  background-color: #f8fafc; /* Fallback if image doesn't load immediately */
+  position: relative;
+  display: flex; /* keep flex for containment */
+  padding: 0; /* Remove padding so image covers completely */
+  border-right: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.desktop-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Cover the entire left side section as requested */
+  object-position: center;
+}
+
+/* ── Form Section (Right Pane) ── */
+.form-section {
+  flex: 1 1 50%;
+  max-width: 50%;
+  padding: 56px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Mobile Logo Container - Hidden Defaultly */
+.mobile-logo {
+  display: none;
+}
+
+.form-header {
+  text-align: left;
+  margin-bottom: 32px;
+}
+
+.form-header h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  letter-spacing: -0.5px;
+}
+
+.form-header p {
+  margin: 6px 0 0 0;
+  font-size: 15px;
+  color: var(--color-text-muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Local utilities */
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-sm);
+  transition: all 0.2s;
+}
+
+.toggle-password:hover {
+  color: var(--color-primary);
+  background-color: var(--color-background);
+}
+
+.submit-btn {
+  width: 100%;
+  height: 44px; /* Slightly taller than input for prominence */
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  margin-top: 12px;
+  box-shadow: 0 4px 6px -1px rgba(44, 100, 197, 0.2);
+}
+
+.submit-btn:hover:not(:disabled) {
+  background-color: #214e9f; /* Darker primary */
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px -2px rgba(44, 100, 197, 0.25);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+.submit-btn:disabled {
+  background-color: #cbd5e1;
+  color: #f8fafc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Mobile & Tablet Adjustments ── */
+@media (max-width: 850px) {
+  .login-card {
+    max-width: 440px;
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  /* Completely hide the left cover panel on small screens */
+  .branding-section {
+    display: none;
+  }
+
+  /* Make header flex to align logo next to sign-in text */
+  .form-header {
+    display: flex;
+    align-items: center; /* centers them vertically side-by-side */
+    gap: 14px;
+  }
+
+  /* Reveal the internal logo */
+  .mobile-logo {
+    display: block;
+    width: 65px;
+    height: 65px;
+    object-fit: contain;
+  }
+
+  .header-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Adjust font sizes slightly for the paired composition */
+  .header-text h2 {
+    font-size: 24px;
+  }
+
+  .header-text p {
+    font-size: 14px;
+    margin-top: 2px;
+  }
+
+  .form-section {
+    padding: 40px 32px;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 0;
+    align-items: flex-start;
+  }
+
+  .login-card {
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100vh;
+    max-width: 100%;
+  }
+
+  .form-section {
+    padding: 40px 24px 24px 24px; /* Ensure no excessive empty space at top */
+  }
+
+  .mobile-logo {
+    width: 55px;
+    height: 55px;
+  }
+}

@@ -24,8 +24,11 @@
     "@angular/router": "^19.2.21",
     "@angular/service-worker": "^19.2.0",
     "@angular/ssr": "^19.2.24",
+    "@primeng/themes": "^21.0.4",
     "express": "^4.18.2",
     "or": "^0.2.0",
+    "primeicons": "^7.0.0",
+    "primeng": "^21.1.6",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

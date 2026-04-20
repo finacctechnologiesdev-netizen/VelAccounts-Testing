@@ -10,6 +10,10 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 
+import { providePrimeNG } from 'primeng/config';
+import Aura from '@primeng/themes/aura';
+import { MessageService, ConfirmationService } from 'primeng/api';
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
@@ -22,5 +26,16 @@ export const appConfig: ApplicationConfig = {
       provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
       useValue: { duration: 4000, horizontalPosition: 'right', verticalPosition: 'top' },
     },
+    providePrimeNG({
+      theme: {
+        preset: Aura,
+        options: {
+          darkModeSelector: false,
+          cssLayer: false
+        }
+      }
+    }),
+    MessageService,
+    ConfirmationService
   ],
 };
