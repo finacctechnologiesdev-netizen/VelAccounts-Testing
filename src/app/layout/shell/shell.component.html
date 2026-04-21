@@ -1,182 +1,136 @@
-<mat-sidenav-container class="shell-container">
+<!-- ── Shell Root ─────────────────────────────────────────────────── -->
+<div class="shell-wrapper" [class.sidebar-expanded]="sidenavOpen && !isMobile()">
 
-  <!-- ── Sidenav ──────────────────────────────────────────── -->
-  <mat-sidenav #sidenav [opened]="sidenavOpen()" mode="side" class="sidenav">
+  <p-drawer
+    #drawerRef
+    [(visible)]="sidenavOpen"
+    position="left"
+    [modal]="isMobile()"
+    [dismissible]="isMobile()"
+    [closable]="false"
+    [style]="{ width: '260px', padding: '0' }"
+    styleClass="va-sidebar">
 
-    <div class="brand">
-      <mat-icon class="brand-icon">account_balance</mat-icon>
-      <span class="brand-name">VelAccounts</span>
-    </div>
+    <ng-template #headless>
+      <div class="va-sb">
 
-    <!-- Active book of accounts -->
-    <div class="account-chip" (click)="switchAccount()" matTooltip="Click to switch account">
-      <mat-icon class="chip-icon">menu_book</mat-icon>
-      <div class="chip-text">
-        <span class="chip-label">Active Book</span>
-        <span class="chip-value">{{ activeAccount.currentAccount()?.Acc_Name ?? '—' }}</span>
-      </div>
-      <mat-icon class="chip-arrow">swap_horiz</mat-icon>
-    </div>
-
-    <mat-divider />
-
-    <!-- Main nav -->
-    <mat-nav-list>
-      @for (item of navItems; track item.route) {
-        @if (!item.adminOnly || isAdmin()) {
-          <a mat-list-item [routerLink]="item.route" routerLinkActive="active-link">
-            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-            <span matListItemTitle>{{ item.label }}</span>
-          </a>
-        }
-      }
-    </mat-nav-list>
-
-    @if (isAdmin()) {
-      <mat-divider />
-      <p class="nav-section-label">Administration</p>
-      <mat-nav-list>
-        @for (item of adminItems; track item.route) {
-          <a mat-list-item [routerLink]="item.route" routerLinkActive="active-link">
-            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-            <span matListItemTitle>{{ item.label }}</span>
-          </a>
-        }
-      </mat-nav-list>
-    }
-
-    <!-- Footer -->
-    <div class="sidenav-footer">
-      <mat-divider />
-      <div class="user-row">
-        <mat-icon>account_circle</mat-icon>
-        <div class="user-info">
-          <span class="user-name">{{ user()?.User_Name }}</span>
-          <span class="user-role">{{ user()?.Role }}</span>
+        <!-- Brand -->
+        <div class="va-sb-brand">
+          <span class="va-sb-brand-icon">
+            <i class="pi pi-building-columns"></i>
+          </span>
+          <span class="va-sb-brand-name">VelAccounts</span>
+          @if (isMobile()) {
+            <button class="va-sb-close-btn" (click)="closeDrawer($event)" aria-label="Close sidebar">
+              <i class="pi pi-times"></i>
+            </button>
+          }
         </div>
-        <button mat-icon-button [matMenuTriggerFor]="userMenu">
-          <mat-icon>more_vert</mat-icon>
+
+        <!-- Active Account Chip -->
+        <div class="va-sb-account-chip" (click)="switchAccount()"
+          pTooltip="Click to switch account" tooltipPosition="right">
+          <i class="pi pi-book va-sb-chip-icon"></i>
+          <div class="va-sb-chip-text">
+            <span class="va-sb-chip-label">Active Book</span>
+            <span class="va-sb-chip-value">{{ activeAccount.currentAccount()?.Acc_Name ?? '—' }}</span>
+          </div>
+          <i class="pi pi-arrow-right-arrow-left va-sb-chip-arrow"></i>
+        </div>
+
+        <p-divider />
+
+        <!-- Main Navigation -->
+        <nav class="va-sb-nav">
+          @for (item of navItems; track item.route) {
+            @if (!item.adminOnly || isAdmin()) {
+              <a class="va-sb-nav-item"
+                [class.va-sb-nav-item--active]="isActive(item.route)"
+                (click)="navigate(item.route)"
+                pRipple>
+                <i [class]="item.icon + ' va-sb-nav-icon'"></i>
+                <span class="va-sb-nav-label">{{ item.label }}</span>
+              </a>
+            }
+          }
+        </nav>
+
+        <!-- Administration Section (admin-only) -->
+        @if (isAdmin()) {
+          <p-divider />
+          <p class="va-sb-section-label">Administration</p>
+          <nav class="va-sb-nav">
+            @for (item of adminItems; track item.route) {
+              <a class="va-sb-nav-item"
+                [class.va-sb-nav-item--active]="isActive(item.route)"
+                (click)="navigate(item.route)"
+                pRipple>
+                <i [class]="item.icon + ' va-sb-nav-icon'"></i>
+                <span class="va-sb-nav-label">{{ item.label }}</span>
+              </a>
+            }
+          </nav>
+        }
+
+        <!-- Footer — User Row -->
+        <div class="va-sb-footer">
+          <p-divider />
+          <div class="va-sb-user-row">
+            <div class="va-sb-user-avatar">
+              <i class="pi pi-user"></i>
+            </div>
+            <div class="va-sb-user-info">
+              <span class="va-sb-user-name">{{ user()?.User_Name }}</span>
+              <span class="va-sb-user-role">{{ user()?.Role }}</span>
+            </div>
+            <button class="va-sb-user-menu-btn"
+              (click)="toggleUserMenu($event)"
+              pTooltip="Options" tooltipPosition="top"
+              aria-label="User options">
+              <i class="pi pi-ellipsis-v"></i>
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /.va-sb -->
+    </ng-template>
+
+  </p-drawer>
+
+  <!-- ── Main Content Area ──────────────────────────────────────── -->
+  <div class="main-area">
+
+    <!-- Top Header Bar -->
+    <header class="top-bar">
+      <button class="top-bar-burger" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+        <i class="pi pi-bars"></i>
+      </button>
+
+      <span class="top-bar-account">{{ activeAccount.label() }}</span>
+
+      <div class="top-bar-actions">
+        <button class="top-bar-icon-btn"
+          (click)="switchAccount()"
+          pTooltip="Switch account" tooltipPosition="bottom"
+          aria-label="Switch account">
+          <i class="pi pi-arrow-right-arrow-left"></i>
+        </button>
+        <button class="top-bar-icon-btn"
+          (click)="toggleUserMenu($event)"
+          aria-label="User menu">
+          <i class="pi pi-user"></i>
         </button>
       </div>
-    </div>
-  </mat-sidenav>
+    </header>
 
-  <!-- ── Main content ─────────────────────────────────────── -->
-  <mat-sidenav-content class="main-content">
-
-    <mat-toolbar color="primary" class="top-bar">
-      <button mat-icon-button (click)="sidenavOpen.set(!sidenavOpen())">
-        <mat-icon>menu</mat-icon>
-      </button>
-      <span class="toolbar-account">{{ activeAccount.label() }}</span>
-      <span class="spacer"></span>
-      <button mat-icon-button (click)="switchAccount()" matTooltip="Switch account">
-        <mat-icon>swap_horiz</mat-icon>
-      </button>
-      <button mat-icon-button [matMenuTriggerFor]="userMenu">
-        <mat-icon>account_circle</mat-icon>
-      </button>
-    </mat-toolbar>
-
-    <div class="page-content">
+    <!-- Routed Pages -->
+    <main class="page-content">
       <router-outlet />
-    </div>
-  </mat-sidenav-content>
+    </main>
 
-</mat-sidenav-container>
+  </div><!-- /.main-area -->
 
-<!-- User context menu -->
-<mat-menu #userMenu="matMenu">
-  <button mat-menu-item (click)="switchAccount()">
-    <mat-icon>swap_horiz</mat-icon> Switch Account
-  </button>
-  <mat-divider />
-  <button mat-menu-item (click)="logout()" class="logout-item">
-    <mat-icon>logout</mat-icon> Logout
-  </button>
-</mat-menu>
+</div><!-- /.shell-wrapper -->
 
-<style>
-.shell-container { height: 100vh; }
-
-.sidenav {
-  width: 260px;
-  display: flex;
-  flex-direction: column;
-  background: #1a237e;
-  color: white;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 20px 16px 12px;
-  color: white;
-}
-.brand-icon { font-size: 28px; width: 28px; height: 28px; }
-.brand-name { font-size: 20px; font-weight: 600; letter-spacing: .5px; }
-
-.account-chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 12px 12px;
-  padding: 10px 12px;
-  background: rgba(255,255,255,.12);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background .2s;
-}
-.account-chip:hover { background: rgba(255,255,255,.2); }
-.chip-icon { font-size: 20px; color: rgba(255,255,255,.8); }
-.chip-text { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.chip-label { font-size: 10px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .5px; }
-.chip-value { font-size: 13px; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.chip-arrow { font-size: 18px; color: rgba(255,255,255,.5); }
-
-.nav-section-label {
-  padding: 12px 16px 4px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: rgba(255,255,255,.5);
-  margin: 0;
-}
-
-mat-nav-list a {
-  color: rgba(255,255,255,.8) !important;
-  border-radius: 8px;
-  margin: 2px 8px;
-}
-mat-nav-list a:hover { background: rgba(255,255,255,.1) !important; }
-mat-nav-list a.active-link {
-  background: rgba(255,255,255,.18) !important;
-  color: white !important;
-  font-weight: 600;
-}
-
-.sidenav-footer {
-  margin-top: auto;
-  padding-bottom: 8px;
-}
-.user-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 8px 4px 16px;
-  color: rgba(255,255,255,.8);
-}
-.user-info { flex: 1; display: flex; flex-direction: column; }
-.user-name { font-size: 13px; font-weight: 500; }
-.user-role { font-size: 11px; color: rgba(255,255,255,.5); }
-
-.top-bar { position: sticky; top: 0; z-index: 10; }
-.toolbar-account { font-size: 14px; opacity: .9; margin-left: 8px; }
-.spacer { flex: 1; }
-
-.main-content { display: flex; flex-direction: column; }
-.page-content { padding: 24px; flex: 1; overflow-y: auto; }
-
-.logout-item { color: #f44336 !important; }
-</style>
+<!-- PrimeNG popup menu for user actions -->
+<p-menu #userMenu [model]="userMenuItems" [popup]="true" />

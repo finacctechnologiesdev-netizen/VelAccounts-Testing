@@ -1,0 +1,219 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="lg-page">
+  <!-- ── Page Header ─────────────────────────────────────────── -->
+  <div class="lg-header">
+    <div class="lg-header-left">
+      <div class="lg-header-icon">
+        <i class="pi pi-folder-open"></i>
+      </div>
+      <div>
+        <h1 class="lg-header-title">Ledger Groups</h1>
+        <p class="lg-header-subtitle">Manage account classification groups</p>
+      </div>
+    </div>
+    <button
+      class="va-btn va-btn--primary"
+      (click)="openNew()"
+      id="btn-new-group"
+    >
+      <i class="pi pi-plus"></i>
+      <span>New Group</span>
+    </button>
+  </div>
+
+  <!-- ── Table Card ──────────────────────────────────────────── -->
+  <div class="lg-card">
+    <p-table
+      #dt
+      [value]="loading() ? skeletonRows : items()"
+      [columns]="cols"
+      [exportHeader]="'exportHeader'"
+      dataKey="GrpSno"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} groups"
+      [globalFilterFields]="['Grp_Code', 'Grp_Name', 'Remarks']"
+      [sortField]="'Grp_Code'"
+      [sortOrder]="1"
+      [rowHover]="true"
+      stateStorage="session"
+      stateKey="lg-table-state"
+      styleClass="p-datatable-sm va-table"
+      responsiveLayout="scroll"
+      [tableStyle]="{ 'min-width': '40rem' }"
+    >
+      <!-- ── Caption (toolbar) ─────────────────────────────── -->
+      <ng-template #caption>
+        <div class="lg-toolbar">
+          <!-- Global Search -->
+          <p-iconfield class="lg-search">
+            <p-inputicon styleClass="pi pi-search" />
+            <input
+              #searchInput
+              pInputText
+              type="text"
+              id="lg-search-input"
+              placeholder="Search code, name, remarks…"
+              class="lg-search__input"
+              (input)="onGlobalFilter($event)"
+            />
+            @if (searchInput.value) {
+              <p-inputicon
+                styleClass="pi pi-times lg-search__clear"
+                (click)="clearSearch(searchInput)"
+              />
+            }
+          </p-iconfield>
+
+          <!-- Export -->
+          <button
+            class="va-btn va-btn--outline"
+            (click)="exportCSV()"
+            pTooltip="Export visible rows as CSV"
+            tooltipPosition="top"
+            id="btn-export"
+          >
+            <i class="pi pi-download"></i>
+            <span class="hide-xs">Export CSV</span>
+          </button>
+        </div>
+      </ng-template>
+
+      <!-- ── Header ────────────────────────────────────────── -->
+      <ng-template #header let-columns>
+        <tr>
+          @for (col of columns; track col.field) {
+            <th
+              [pSortableColumn]="col.sortable ? col.field : ''"
+              [class.hide-sm]="col.hideOnMobile"
+              [style.width]="col.width ?? 'auto'"
+              [class.sortable-col]="col.sortable"
+            >
+              <div class="th-inner">
+                {{ col.header }}
+                @if (col.sortable) {
+                  <p-sortIcon [field]="col.field" />
+                }
+              </div>
+            </th>
+          }
+          <th style="width: 100px; text-align: center">Actions</th>
+        </tr>
+      </ng-template>
+
+      <!-- ── Body ──────────────────────────────────────────── -->
+      <ng-template #body let-row let-columns="columns">
+        <!-- Skeleton rows while loading -->
+        @if (row._skeleton !== undefined || loading()) {
+          <tr>
+            @for (col of columns; track col.field) {
+              <td [class.hide-sm]="col.hideOnMobile">
+                <p-skeleton
+                  height="1rem"
+                  [style]="{ 'border-radius': '6px' }"
+                />
+              </td>
+            }
+            <td>
+              <div class="lg-actions">
+                <p-skeleton shape="circle" size="2rem" />
+                <p-skeleton shape="circle" size="2rem" />
+              </div>
+            </td>
+          </tr>
+        } @else {
+          <tr>
+            <td>
+              <span class="lg-code-badge">{{ row.Grp_Code }}</span>
+            </td>
+            <td>
+              <span class="lg-name">{{ row.Grp_Name }}</span>
+            </td>
+            <td
+              class="hide-sm lg-remarks-cell"
+              [class.is-empty]="!row.Remarks"
+              [pTooltip]="row.Remarks || ''"
+              tooltipPosition="top"
+              [showDelay]="600"
+            >
+              {{ row.Remarks || "—" }}
+            </td>
+            <td>
+              <div class="lg-actions">
+                <button
+                  class="lg-action-btn lg-action-btn--edit"
+                  (click)="openEdit(row)"
+                  pTooltip="Edit"
+                  tooltipPosition="top"
+                  [attr.id]="'btn-edit-' + row.GrpSno"
+                >
+                  <i class="pi pi-pencil"></i>
+                </button>
+                <button
+                  class="lg-action-btn lg-action-btn--delete"
+                  (click)="deleteRow(row)"
+                  pTooltip="Delete"
+                  tooltipPosition="top"
+                  [attr.id]="'btn-delete-' + row.GrpSno"
+                >
+                  <i class="pi pi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </ng-template>
+
+      <!-- ── Empty state ────────────────────────────────────── -->
+      <ng-template #emptymessage let-columns>
+        <tr>
+          <td [attr.colspan]="columns.length + 1">
+            <div class="lg-empty">
+              <div class="lg-empty__icon-wrap">
+                <i class="pi pi-folder-open"></i>
+              </div>
+              <p class="lg-empty__title">No ledger groups found</p>
+              <p class="lg-empty__hint">
+                Try changing the search filter, or create a new group.
+              </p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <!-- ── Paginator left ─────────────────────────────────── -->
+      <ng-template #paginatorleft>
+        <span class="lg-page-info hide-xs"> {{ items().length }} total </span>
+      </ng-template>
+    </p-table>
+  </div>
+  <!-- /.lg-card -->
+</div>
+<!-- /.lg-page -->
+
+<!-- ── Form Dialog ─────────────────────────────────────────────── -->
+<p-dialog
+  [(visible)]="formVisible"
+  [header]="editRow ? 'Edit Ledger Group' : 'New Ledger Group'"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '460px' }"
+  [breakpoints]="{ '640px': '95vw' }"
+  [contentStyle]="{ padding: '0' }"
+  styleClass="va-dialog"
+  (onHide)="onFormCancelled()"
+>
+  @if (formVisible) {
+    <app-ledger-group-form
+      [row]="editRow"
+      (saved)="onFormSaved()"
+      (cancelled)="onFormCancelled()"
+    />
+  }
+</p-dialog>

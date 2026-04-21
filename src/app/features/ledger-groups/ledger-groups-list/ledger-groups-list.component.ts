@@ -1,101 +1,156 @@
-
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { FormsModule } from '@angular/forms';
+
+// PrimeNG Table (patched — ChangeDetectionStrategy.Eager → Default)
+import { Table, TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { TooltipModule } from 'primeng/tooltip';
+import { TagModule } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToastModule } from 'primeng/toast';
+import { SkeletonModule } from 'primeng/skeleton';
+import { SelectModule } from 'primeng/select';
+import { MessageService, ConfirmationService } from 'primeng/api';
+
 import { LedgerGroupsService } from '../../../core/services/api.services';
 import { LedgerGroup } from '../../../core/models';
 import { LedgerGroupFormComponent } from '../ledger-group-form/ledger-group-form.component';
-import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+
+interface ColDef {
+  field: string;
+  header: string;
+  exportHeader?: string;
+  sortable?: boolean;
+  width?: string;
+  hideOnMobile?: boolean;
+}
 
 @Component({
   selector: 'app-ledger-groups-list',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule,
-            MatCardModule, MatTooltipModule, MatProgressBarModule],
-  template: `
-    <div class="page-header">
-      <h2 class="page-title">Ledger Groups</h2>
-      <button mat-flat-button color="primary" (click)="openForm()">
-        <mat-icon>add</mat-icon> New Group
-      </button>
-    </div>
-    <mat-card>
-      @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
-      <table mat-table [dataSource]="items()" class="full-table">
-        <ng-container matColumnDef="Grp_Code">
-          <th mat-header-cell *matHeaderCellDef>Code</th>
-          <td mat-cell *matCellDef="let r">{{ r.Grp_Code }}</td>
-        </ng-container>
-        <ng-container matColumnDef="Grp_Name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
-          <td mat-cell *matCellDef="let r">{{ r.Grp_Name }}</td>
-        </ng-container>
-        <ng-container matColumnDef="Remarks">
-          <th mat-header-cell *matHeaderCellDef>Remarks</th>
-          <td mat-cell *matCellDef="let r">{{ r.Remarks }}</td>
-        </ng-container>
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let r">
-            <button mat-icon-button matTooltip="Edit" (click)="openForm(r)"><mat-icon>edit</mat-icon></button>
-            <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDelete(r)"><mat-icon>delete</mat-icon></button>
-          </td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="cols"></tr>
-        <tr mat-row *matRowDef="let row; columns: cols;"></tr>
-      </table>
-      @if (!loading() && items().length === 0) {
-        <div class="empty-state"><mat-icon>folder</mat-icon><p>No ledger groups yet.</p></div>
-      }
-    </mat-card>
-  `,
-  styles: [`
-  .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-  .page-title  { margin:0; font-size:22px; }
-  .full-table  { width:100%; }
-  .empty-state { display:flex; flex-direction:column; align-items:center; padding:48px; color:#aaa; }
-  .empty-state mat-icon { font-size:48px; width:48px; height:48px; }
-`],
+  imports: [
+    CommonModule, FormsModule,
+    TableModule, ButtonModule, InputTextModule,
+    IconFieldModule, InputIconModule, TooltipModule,
+    TagModule, DialogModule, ConfirmDialogModule, ToastModule,
+    SkeletonModule, SelectModule,
+    LedgerGroupFormComponent,
+  ],
+  providers: [MessageService, ConfirmationService],
+  templateUrl: './ledger-groups-list.component.html',
+  styleUrl:    './ledger-groups-list.component.scss',
 })
 export class LedgerGroupsListComponent implements OnInit {
-  private svc    = inject(LedgerGroupsService);
-  private dialog = inject(MatDialog);
-  private snack  = inject(MatSnackBar);
 
-  loading = signal(false);
+  @ViewChild('dt') table!: Table;
+
+  private readonly svc     = inject(LedgerGroupsService);
+  private readonly toast   = inject(MessageService);
+  private readonly confirm = inject(ConfirmationService);
+
+  // ── Data ───────────────────────────────────────────────────────
+  loading = signal(true);
   items   = signal<LedgerGroup[]>([]);
-  cols    = ['Grp_Code', 'Grp_Name', 'Remarks', 'actions'];
 
-  ngOnInit() { this.load(); }
+  readonly skeletonRows = Array.from({ length: 8 });
+  readonly rowsOptions  = [
+    { label: '10 rows', value: 10 },
+    { label: '25 rows', value: 25 },
+    { label: '50 rows', value: 50 },
+  ];
 
-  load() {
+  // ── Column definitions (drives header, export & body) ──────────
+  readonly cols: ColDef[] = [
+    { field: 'Grp_Code', header: 'Code',    exportHeader: 'Group Code', sortable: true, width: '130px' },
+    { field: 'Grp_Name', header: 'Name',    exportHeader: 'Group Name', sortable: true },
+    { field: 'Remarks',  header: 'Remarks', exportHeader: 'Remarks',    sortable: true, hideOnMobile: true },
+  ];
+
+  // ── Dialog ─────────────────────────────────────────────────────
+  formVisible = false;
+  editRow: LedgerGroup | undefined;
+
+  ngOnInit(): void { this.load(); }
+
+  // ── CRUD ───────────────────────────────────────────────────────
+  load(): void {
     this.loading.set(true);
     this.svc.list().subscribe({
-      next: r  => { this.items.set(r.data ?? []); this.loading.set(false); },
+      next:  r  => { this.items.set(r.data ?? []); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
   }
 
-  openForm(row?: LedgerGroup) {
-    this.dialog.open(LedgerGroupFormComponent, { width: '480px', data: row })
-      .afterClosed().subscribe(saved => { if (saved) this.load(); });
+  openNew(): void {
+    this.editRow     = undefined;
+    this.formVisible = true;
   }
 
-  confirmDelete(row: LedgerGroup) {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'Delete Group', message: `Delete "${row.Grp_Name}"?`, danger: true, confirmText: 'Delete' }
-    }).afterClosed().subscribe(ok => {
-      if (!ok) return;
-      this.svc.delete(row.GrpSno, row.CurrentRowVer).subscribe({
-        next: () => { this.snack.open('Deleted.', 'OK'); this.load(); },
-      });
+  openEdit(row: LedgerGroup): void {
+    // Spread to a fresh object so form patch doesn't mutate the table row reference
+    this.editRow     = { ...row };
+    this.formVisible = true;
+  }
+
+  onFormSaved(): void {
+    this.formVisible = false;
+    this.load();
+    this.toast.add({ severity: 'success', summary: 'Success', detail: 'Ledger group saved successfully.' });
+  }
+
+  /** Close dialog when user clicks the backdrop mask */
+  // @HostListener('document:click', ['$event'])
+  // onDocumentClick(event: MouseEvent): void {
+  //   if (!this.formVisible) return;
+  //   const target = event.target as HTMLElement;
+  //   // PrimeNG appends the mask as .p-dialog-mask to <body>
+  //   if (target.classList.contains('p-dialog-mask') ||
+  //       target.classList.contains('p-overlay-mask')) {
+  //     this.onFormCancelled();
+  //   }
+  // }
+
+  onFormCancelled(): void {
+    this.formVisible = false;
+    this.editRow     = undefined;
+  }
+
+  deleteRow(row: LedgerGroup): void {
+    this.confirm.confirm({
+      header:  'Confirm Delete',
+      message: `Delete ledger group "<strong>${row.Grp_Name}</strong>"? This cannot be undone.`,
+      icon:    'pi pi-exclamation-triangle',
+      acceptButtonProps: { label: 'Yes, Delete', severity: 'danger', icon: 'pi pi-trash' },
+      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      accept: () => {
+        this.svc.delete(row.GrpSno, row.CurrentRowVer).subscribe({
+          next:  () => {
+            this.toast.add({ severity: 'warn', summary: 'Deleted', detail: `"${row.Grp_Name}" has been deleted.`, icon: 'pi pi-trash' });
+            this.load();
+          },
+          error: () => this.toast.add({ severity: 'error', summary: 'Error', detail: 'Could not delete. Please try again.' }),
+        });
+      },
     });
+  }
+
+  // ── PrimeNG Table built-in export (uses table's exportCSV()) ───
+  exportCSV(): void {
+    this.table.exportCSV();
+  }
+
+  // ── Global search via PrimeNG filterGlobal ─────────────────────
+  onGlobalFilter(event: Event): void {
+    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+  }
+
+  clearSearch(input: HTMLInputElement): void {
+    input.value = '';
+    this.table.filterGlobal('', 'contains');
   }
 }

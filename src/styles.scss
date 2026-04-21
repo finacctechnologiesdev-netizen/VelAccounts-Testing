@@ -3,56 +3,91 @@
 @import "primeicons/primeicons.css";
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
-/* ── Global Variables ────────────────────────────────────── */
+
 :root {
-  /* Brand Colors matching logo */
-  --color-primary: #2c64c5; /* Light/Royal Blue from logo */
-  --color-primary-light: #5282d4;
-  --color-secondary: #0ba04b; /* Green from logo checkmark */
-  --color-accent: #0ba04b;
 
-  /* Neutral Colors */
-  --color-background: #f0f4f8;
-  --color-surface: #ffffff;
-  --color-text-main: #1e293b;
-  --color-text-muted: #64748b;
-  --color-border: #cbd5e1;
-  --color-input-bg: #ffffff;
+  /* ── Brand Colors ──────────────────────────────────────────────── */
+  --color-primary:       #1565c0;   /* main brand blue */
+  --color-primary-light: #1e88e5;   /* hover / lighter variant */
+  --color-secondary:     #0ba04b;   /* logo green */
+  --color-accent:        #0ba04b;
+  --color-accent-warm:   #ffd166;   /* warm yellow — greeting icons, highlights */
 
-  /* Status Colors */
-  --color-error: #ef4444;
+  /* ── Neutral Surface Colors ────────────────────────────────────── */
+  --color-background:     #f0f4f8;  /* app page background */
+  --color-surface:        #ffffff;  /* cards, dialogs */
+  --color-surface-subtle: #fafbfc;  /* paginator, toolbar, dialog footer bg */
+  --color-surface-header: #f8fafc;  /* table header row bg */
+  --color-hover-bg:       #f1f5f9;  /* generic hover state */
+  --color-primary-pale:   #f0f5ff;  /* highlighted sort column bg */
+
+  /* ── Text Colors ───────────────────────────────────────────────── */
+  --color-text-main:        #1e293b;
+  --color-text-muted:       #64748b;
+  --color-text-placeholder: #94a3b8;              /* input placeholders, hints */
+  --color-text-on-dark:     rgba(255,255,255,0.85); /* sidebar text */
+  --color-text-on-dark-muted: rgba(255,255,255,0.50); /* sidebar muted text */
+  --color-text-on-primary:  #e2e8f0;              /* banner subtitle on blue bg */
+
+  /* ── Border & Divider ──────────────────────────────────────────── */
+  --color-border:        #cbd5e1;   /* default border */
+  --color-border-strong: #94a3b8;   /* search inputs, prominent borders */
+  --color-input-bg:      #ffffff;
+
+  /* ── Status Colors ─────────────────────────────────────────────── */
+  --color-error:    #ef4444;
   --color-error-bg: #fef2f2;
-  --color-success: #0ba04b;
+  --color-success:  #0ba04b;
 
-  /* Typography */
+  /* ── Sidebar Palette ───────────────────────────────────────────── */
+  --sidebar-gradient:      linear-gradient(165deg, #1a237e 0%, #283593 55%, #1565c0 100%);
+  --sidebar-overlay-low:   rgba(255,255,255,0.08);   /* user menu button bg */
+  --sidebar-overlay-mid:   rgba(255,255,255,0.10);   /* chip bg / hover-bg */
+  --sidebar-overlay-high:  rgba(255,255,255,0.15);   /* brand icon bg */
+  --sidebar-overlay-active:rgba(255,255,255,0.18);   /* active nav item / avatar */
+  --sidebar-overlay-hover: rgba(255,255,255,0.22);   /* close-btn hover */
+  --sidebar-divider:       rgba(255,255,255,0.12);   /* p-divider colour */
+  --sidebar-chip-border:   rgba(255,255,255,0.12);   /* chip outline */
+
+  /* ── Dashboard Card Accent Palette ────────────────────────────── */
+  --card-blue:       #3b82f6;   --card-blue-bg:   #eff6ff;
+  --card-green:      #10b981;   --card-green-bg:  #ecfdf5;
+  --card-orange:     #f97316;   --card-orange-bg: #fff7ed;
+  --card-purple:     #8b5cf6;   --card-purple-bg: #f5f3ff;
+  --card-teal:       #14b8a6;   --card-teal-bg:   #f0fdfa;
+  /* red uses existing --color-error / --color-error-bg */
+
+  /* ── Typography ────────────────────────────────────────────────── */
   --font-main: "Inter", system-ui, -apple-system, sans-serif;
 
-  /* Borders & Shadows */
-  --border-radius-sm: 4px;
-  --border-radius-md: 6px;
-  --border-radius-lg: 12px;
-  --border-radius-xl: 16px;
+  /* ── Border Radius (rem) ───────────────────────────────────────── */
+  --border-radius-sm: 0.25rem;    /* 4px  */
+  --border-radius-md: 0.375rem;   /* 6px  */
+  --border-radius-lg: 0.75rem;    /* 12px */
+  --border-radius-xl: 1rem;       /* 16px */
 
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md:
-    0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-  --shadow-lg:
-    0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
-  --shadow-float: 0 16px 32px -8px rgb(0 0 0 / 0.08);
+  /* ── Elevation / Shadows ───────────────────────────────────────── */
+  --shadow-sm:    0 0.0625rem 0.125rem 0 rgb(0 0 0 / 0.05);
+  --shadow-md:    0 0.25rem 0.375rem -0.0625rem rgb(0 0 0 / 0.05),
+                  0 0.125rem 0.25rem -0.125rem  rgb(0 0 0 / 0.05);
+  --shadow-lg:    0 0.625rem 0.9375rem -0.1875rem rgb(0 0 0 / 0.05),
+                  0 0.25rem  0.375rem  -0.25rem   rgb(0 0 0 / 0.05);
+  --shadow-float: 0 1rem 2rem -0.5rem rgb(0 0 0 / 0.08);
 
-  /* Form Metrics */
-  --input-height: 42px;
-  --input-padding-x: 12px;
-  --icon-size: 20px;
+  /* ── Form Metrics (rem) ────────────────────────────────────────── */
+  --input-height:    2.625rem;   /* 42px */
+  --input-padding-x: 0.75rem;   /* 12px */
+  --icon-size:       1.25rem;   /* 20px */
+
+  /* ── Layout Tokens (rem) ───────────────────────────────────────── */
+  --topbar-height:  3.625rem;   /* 58px  */
+  --sidebar-width:  16.25rem;   /* 260px */
 }
 
-/* ── Base ────────────────────────────────────────────────── */
-* {
-  box-sizing: border-box;
-}
+/* ── Base ────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
 
-html,
-body {
+html, body {
   height: 100%;
   margin: 0;
   padding: 0;
@@ -64,8 +99,7 @@ body {
 }
 
 /* Force Material Icons to render correctly */
-.material-icons,
-mat-icon {
+.material-icons, mat-icon {
   font-family: "Material Icons" !important;
   font-weight: normal;
   font-style: normal;
@@ -83,17 +117,16 @@ mat-icon {
   font-feature-settings: "liga";
 }
 
-/* ── Global Form Styles ──────────────────────────────────── */
-/* Use these classes prefix with va- (VelAccounts) for all app forms */
+/* ── Global Form Styles (va- prefix) ────────────────────────────── */
 .va-form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 20px;
+  gap: 0.375rem;       /* 6px */
+  margin-bottom: 1.25rem; /* 20px */
 }
 
 .va-label {
-  font-size: 13px;
+  font-size: 0.8125rem;  /* 13px */
   font-weight: 600;
   color: var(--color-text-main);
   letter-spacing: 0.2px;
@@ -109,28 +142,26 @@ mat-icon {
   position: absolute;
   left: var(--input-padding-x);
   color: var(--color-text-muted);
-  pointer-events: none; /* Let clicks pass through to input */
+  pointer-events: none;
 }
 
 .va-input {
   width: 100%;
   height: var(--input-height);
   padding: 0 var(--input-padding-x);
-  border: 1px solid var(--color-border);
+  border: 0.0625rem solid var(--color-border);  /* 1px */
   border-radius: var(--border-radius-md);
   background-color: var(--color-input-bg);
-  font-size: 14px;
+  font-size: 0.875rem;   /* 14px */
   color: var(--color-text-main);
   font-family: inherit;
   transition: all 0.2s ease-in-out;
 }
 
-/* Add padding if a prefix icon exists */
 .va-input-wrapper.has-prefix .va-input {
   padding-left: calc(var(--input-padding-x) * 2 + var(--icon-size));
 }
 
-/* Add padding if a suffix button/icon exists */
 .va-input-wrapper.has-suffix .va-input {
   padding-right: calc(var(--input-padding-x) * 2 + var(--icon-size));
 }
@@ -138,69 +169,60 @@ mat-icon {
 .va-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(44, 100, 197, 0.15); /* light primary glow */
+  box-shadow: 0 0 0 0.1875rem rgba(21, 101, 192, 0.15); /* 3px */
 }
 
 .va-input::placeholder {
-  color: #94a3b8;
+  color: var(--color-text-placeholder);
   font-weight: 400;
 }
 
 .va-input:disabled {
-  background-color: #f1f5f9;
-  color: #94a3b8;
+  background-color: var(--color-hover-bg);
+  color: var(--color-text-placeholder);
   cursor: not-allowed;
 }
 
 .va-error-msg {
-  font-size: 12px;
+  font-size: 0.75rem;    /* 12px */
   color: var(--color-error);
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 2px;
+  gap: 0.25rem;          /* 4px */
+  margin-top: 0.125rem;  /* 2px */
 }
 
 .va-error-msg .material-icons {
-  font-size: 14px;
+  font-size: 0.875rem;   /* 14px */
 }
 
-/* ── Snackbar colours ────────────────────────────────────── */
-.snack-error .mdc-snackbar__surface {
-  background: var(--color-error) !important;
-}
-.snack-error .mdc-snackbar__label {
-  color: white !important;
-}
+/* ── Snackbar colours ────────────────────────────────────────────── */
+.snack-error .mdc-snackbar__surface { background: var(--color-error) !important; }
+.snack-error .mdc-snackbar__label   { color: white !important; }
 
-/* ── Material table cells ────────────────────────────────── */
+/* ── Material table cells ────────────────────────────────────────── */
 .mat-mdc-cell,
 .mat-mdc-header-cell {
-  padding: 8px 12px !important;
+  padding: 0.5rem 0.75rem !important; /* 8px 12px */
 }
 
-/* ── PrimeNG Toast Global Fixes ── */
-.p-toast {
-  /* Prevent modals/drawers from hiding the toast */
-  z-index: 9999 !important; 
-}
+/* ── PrimeNG Toast Global Fixes ──────────────────────────────────── */
+.p-toast { z-index: 9999 !important; }
 
-@media (max-width: 850px) {
+@media (max-width: 53.125rem) { /* 850px */
   .p-toast {
     width: 90vw !important;
     left: 5vw !important;
     right: auto !important;
-    top: max(env(safe-area-inset-top), 20px) !important;
+    top: max(env(safe-area-inset-top), 1.25rem) !important; /* 20px */
     transform: none !important;
   }
-  
-  /* Make PrimeNG Confirm Dialog mobile-native width and reduce padding */
+
   .p-dialog.p-confirm-dialog {
     width: 90vw !important;
     margin: 0 auto;
   }
-  
-  /* Reduce empty spaces inside the dialog on mobile */
+
   .p-dialog.p-confirm-dialog .p-dialog-header {
     padding: 1.25rem 1.25rem 0.5rem !important;
   }

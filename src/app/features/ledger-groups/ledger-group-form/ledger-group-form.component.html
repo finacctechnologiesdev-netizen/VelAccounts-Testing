@@ -1,0 +1,84 @@
+<form [formGroup]="form" (ngSubmit)="save()" class="lgf" novalidate>
+
+  <!-- Code -->
+  <div class="lgf-field">
+    <label class="lgf-label" for="grp-code">
+      Group Code <span class="lgf-required">*</span>
+    </label>
+    <div class="lgf-input-wrap" [class.lgf-input-wrap--error]="f['Grp_Code'].invalid && f['Grp_Code'].touched">
+      <i class="pi pi-hashtag lgf-prefix-icon"></i>
+      <input
+        id="grp-code"
+        class="lgf-input lgf-input--has-icon"
+        type="text"
+        formControlName="Grp_Code"
+        placeholder="e.g. ASSETS"
+        autocomplete="off"
+        maxlength="20" />
+    </div>
+    @if (f['Grp_Code'].invalid && f['Grp_Code'].touched) {
+      <span class="lgf-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Group code is required.
+      </span>
+    }
+  </div>
+
+  <!-- Name -->
+  <div class="lgf-field">
+    <label class="lgf-label" for="grp-name">
+      Group Name <span class="lgf-required">*</span>
+    </label>
+    <div class="lgf-input-wrap" [class.lgf-input-wrap--error]="f['Grp_Name'].invalid && f['Grp_Name'].touched">
+      <i class="pi pi-tag lgf-prefix-icon"></i>
+      <input
+        id="grp-name"
+        class="lgf-input lgf-input--has-icon"
+        type="text"
+        formControlName="Grp_Name"
+        placeholder="e.g. Current Assets"
+        autocomplete="off"
+        maxlength="100" />
+    </div>
+    @if (f['Grp_Name'].invalid && f['Grp_Name'].touched) {
+      <span class="lgf-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Group name is required.
+      </span>
+    }
+  </div>
+
+  <!-- Remarks -->
+  <div class="lgf-field">
+    <label class="lgf-label" for="grp-remarks">Remarks</label>
+    <div class="lgf-input-wrap">
+      <textarea
+        id="grp-remarks"
+        class="lgf-textarea"
+        formControlName="Remarks"
+        placeholder="Optional notes about this group…"
+        rows="3"
+        maxlength="250">
+      </textarea>
+    </div>
+    <span class="lgf-hint">{{ f['Remarks'].value.length }} / 250</span>
+  </div>
+
+  <!-- Footer Buttons -->
+  <div class="lgf-footer">
+    <button type="button" class="lgf-btn lgf-btn--cancel" (click)="cancel()" id="btn-lgf-cancel">
+      <i class="pi pi-times"></i>
+      Cancel
+    </button>
+    <button type="submit" class="lgf-btn lgf-btn--save" [disabled]="saving" id="btn-lgf-save">
+      @if (saving) {
+        <i class="pi pi-spin pi-spinner"></i>
+        Saving…
+      } @else {
+        <i class="pi pi-check"></i>
+        {{ row() ? 'Update' : 'Create' }}
+      }
+    </button>
+  </div>
+
+</form>
