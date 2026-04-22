@@ -1,0 +1,154 @@
+<form [formGroup]="form" (ngSubmit)="save()" class="frm-layout" novalidate>
+
+  <!-- Series Name -->
+  <div class="frm-field">
+    <label class="frm-label" for="vs-name">
+      Series Name <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Series_Name'].invalid && f['Series_Name'].touched">
+      <i class="pi pi-list frm-prefix-icon"></i>
+      <input
+        id="vs-name"
+        class="frm-input frm-input--has-icon"
+        type="text"
+        formControlName="Series_Name"
+        placeholder="e.g. Main Series"
+        autocomplete="off" />
+    </div>
+    @if (f['Series_Name'].invalid && f['Series_Name'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Series name is required.
+      </span>
+    }
+  </div>
+
+  <!-- Voucher Type -->
+  <div class="frm-field">
+    <label class="frm-label" for="vs-type">
+      Voucher Type <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['VouTypeSno'].invalid && f['VouTypeSno'].touched">
+      <select 
+        id="vs-type" 
+        class="frm-input" 
+        formControlName="VouTypeSno"
+        [class.placeholder]="f['VouTypeSno'].value === 0">
+        <option [ngValue]="0" disabled>Select Voucher Type</option>
+        @for (t of types(); track t.VouTypeSno) {
+          <option [ngValue]="t.VouTypeSno">{{ t.VTyp_Name }}</option>
+        }
+      </select>
+    </div>
+    @if (f['VouTypeSno'].invalid && f['VouTypeSno'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Voucher type is required.
+      </span>
+    }
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+    <!-- Prefix -->
+    <div class="frm-field">
+      <label class="frm-label" for="vs-prefix">
+        Prefix <span class="frm-required">*</span>
+      </label>
+      <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Prefix'].invalid && f['Prefix'].touched">
+        <input
+          id="vs-prefix"
+          class="frm-input"
+          type="text"
+          formControlName="Prefix"
+          placeholder="e.g. RCPT"
+          maxlength="5"
+          autocomplete="off" />
+      </div>
+      @if (f['Prefix'].invalid && f['Prefix'].touched) {
+        <span class="frm-error">
+          <i class="pi pi-exclamation-circle"></i>
+          Required limit: 5 chars.
+        </span>
+      }
+    </div>
+
+    <!-- Width -->
+    <div class="frm-field">
+      <label class="frm-label" for="vs-width">
+        Width (digits) <span class="frm-required">*</span>
+      </label>
+      <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Width'].invalid && f['Width'].touched">
+        <input
+          id="vs-width"
+          class="frm-input"
+          type="number"
+          formControlName="Width"
+          min="1" max="10" />
+      </div>
+      @if (f['Width'].invalid && f['Width'].touched) {
+        <span class="frm-error">
+          <i class="pi pi-exclamation-circle"></i>
+          Required (1–10).
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- Numbering Method -->
+  <div class="frm-field">
+    <label class="frm-label" for="vs-method">
+      Numbering Method <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Numbering_Method'].invalid && f['Numbering_Method'].touched">
+      <select 
+        id="vs-method" 
+        class="frm-input" 
+        formControlName="Numbering_Method"
+        [class.placeholder]="!f['Numbering_Method'].value">
+        <option [ngValue]="null" disabled>Select Method</option>
+        <option value="AUTO">AUTO — System generates automatically</option>
+        <option value="SEMI">SEMI — System suggests; user can edit</option>
+        <option value="MANUAL">MANUAL — User always types the number</option>
+      </select>
+    </div>
+    @if (f['Numbering_Method'].invalid && f['Numbering_Method'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Numbering method is required.
+      </span>
+    }
+  </div>
+
+  <!-- Starting Number -->
+  <div class="frm-field">
+    <label class="frm-label" for="vs-current">
+      Starting Number
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Current_No'].invalid && f['Current_No'].touched">
+      <input
+        id="vs-current"
+        class="frm-input"
+        type="number"
+        formControlName="Current_No" />
+    </div>
+    <span class="frm-hint">Last used number (0 = start from 1)</span>
+  </div>
+
+  <!-- Footer Buttons -->
+  <div class="frm-footer">
+    <button type="button" class="ui-btn ui-btn--cancel" (click)="cancel()" id="btn-frm-cancel">
+      <i class="pi pi-times"></i>
+      Cancel
+    </button>
+    <button type="submit" class="ui-btn ui-btn--save" [disabled]="saving" id="btn-frm-save">
+      @if (saving) {
+        <i class="pi pi-spin pi-spinner"></i>
+        Saving…
+      } @else {
+        <i class="pi pi-check"></i>
+        {{ row() ? 'Update' : 'Create' }}
+      }
+    </button>
+  </div>
+
+</form>

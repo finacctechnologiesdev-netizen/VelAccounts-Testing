@@ -95,6 +95,7 @@ export class ShellComponent implements OnInit, OnDestroy {
     );
 
     // Set active route; auto-close on mobile after navigation
+    this.activeRoute.set(this.router.url);
     this.subs.add(
       this.router.events
         .pipe(filter(e => e instanceof NavigationEnd))

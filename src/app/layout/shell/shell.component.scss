@@ -79,12 +79,21 @@ $transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   display         : flex;
   align-items     : center;
   justify-content : center;
-  width           : 2.25rem;       /* 36px */
-  height          : 2.25rem;
-  background      : var(--sidebar-overlay-high);
-  border-radius   : 0.625rem;      /* 10px */
+  width           : 2.85rem;       /* 36px */
+  height          : 2.85rem;
+  //background      : var(--sidebar-overlay-high);
+  //border-radius   : 0.625rem;      /* 10px */
   flex-shrink     : 0;
-  i { font-size: 1.125rem; color: var(--color-surface); } /* 18px */
+    // i { font-size: 1.125rem; color: var(--color-surface);
+  overflow        : hidden;
+}
+
+.va-sb-brand-logo {
+  width     : 100%;
+  height    : 100%;
+  object-fit: contain;
+  padding   : 0.25rem;
+  border-radius   : 0.725rem;      /* 10px */
 }
 
 .va-sb-brand-name {
@@ -235,12 +244,13 @@ $transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 .va-sb-footer {
   margin-top : auto;
   flex-shrink: 0;
+  margin-left: 20px;
 }
 
 .va-sb-user-row {
   display     : flex;
   align-items : center;
-  gap         : 0.625rem;          /* 10px */
+  gap         : 0.7rem;          /* 10px */
   padding     : 0.625rem 0.75rem 0.875rem 0.875rem; /* 10 12 14 14 */
 }
 

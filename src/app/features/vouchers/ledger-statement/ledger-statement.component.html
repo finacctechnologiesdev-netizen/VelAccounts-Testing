@@ -1,0 +1,196 @@
+<p-toast />
+
+<div class="tbl-page">
+  <!-- ── Page Header ─────────────────────────────────────────── -->
+  <div class="tbl-page-header">
+    <div class="tbl-page-header-left">
+      <div class="tbl-page-icon">
+        <i class="pi pi-book"></i>
+      </div>
+      <div>
+        <h1 class="tbl-page-title">Ledger Statement</h1>
+        <p class="tbl-page-subtitle">View detailed transaction history for a ledger account</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Filter Block (Separated) ────────────────────────────── -->
+  <div class="ls-filter-card">
+    <form [formGroup]="filterForm" class="ls-filter-row">
+
+      <!-- Ledger -->
+      <div class="ls-filter-item ls-filter-item-ledger">
+        <label class="frm-label">Select Ledger</label>
+        <p-select [options]="ledgers()" formControlName="LedSno" optionLabel="Led_Name" optionValue="LedSno"
+          placeholder="Choose Ledger" [style]="{'width': '100%'}">
+        </p-select>
+        @if (f['LedSno'].invalid && f['LedSno'].touched) {
+        <span class="frm-error" style="margin-top: 4px;">Required</span>
+        }
+      </div>
+
+      <!-- From Date -->
+      <div class="ls-filter-item ls-filter-item-date">
+        <label class="frm-label">From Date</label>
+        <p-datepicker formControlName="fromDate" dateFormat="dd/mm/yy" [showIcon]="true" placeholder="Start Date"
+          appendTo="body" [style]="{'width': '100%'}">
+        </p-datepicker>
+        @if (f['fromDate'].invalid && f['fromDate'].touched) {
+        <span class="frm-error" style="margin-top: 4px;">Required</span>
+        }
+      </div>
+
+      <!-- To Date -->
+      <div class="ls-filter-item ls-filter-item-date">
+        <label class="frm-label">To Date</label>
+        <p-datepicker formControlName="toDate" dateFormat="dd/mm/yy" [showIcon]="true" placeholder="End Date"
+          appendTo="body" [style]="{'width': '100%'}">
+        </p-datepicker>
+        @if (f['toDate'].invalid && f['toDate'].touched) {
+        <span class="frm-error" style="margin-top: 4px;">Required</span>
+        }
+      </div>
+
+      <!-- Action -->
+      <div class="ls-filter-action">
+        <button type="button" class="ui-btn ui-btn--primary" (click)="load()" [disabled]="loading()">
+          @if (loading()) {
+          <i class="pi pi-spin pi-spinner"></i> Loading…
+          } @else {
+          <i class="pi pi-search"></i> Show Statement
+          }
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ── State Empty / Instruction ────────────────────────────── -->
+  @if (!summary() && !loading()) {
+  <div class="ls-empty-state">
+    <div class="ls-empty-icon">
+      <i class="pi pi-search"></i>
+    </div>
+    <h3>No Statement Loaded</h3>
+    <p>Select a ledger and date range, then click "Show Statement" to fetch records.</p>
+  </div>
+  }
+
+  <!-- ── Content Area (Visible after load) ───────────────────── -->
+  @if (summary() || loading()) {
+
+  <!-- Summary Cards Grid -->
+  <div class="ls-summary-grid">
+    <!-- Opening Balance -->
+    <div class="ls-summary-card">
+      <p class="ls-sum-label">Opening Balance</p>
+      @if (loading()) {
+      <p-skeleton width="60%" height="2rem" />
+      } @else {
+      <p class="ls-sum-value" [ngClass]="summary()!.OpeningBalance < 0 ? 'ls-value-debit' : 'ls-value-credit'">
+        {{ summary()!.OpeningBalance | number:"1.2-2" }}
+      </p>
+      }
+    </div>
+
+    <!-- Total Debit -->
+    <div class="ls-summary-card">
+      <p class="ls-sum-label">Total Debit</p>
+      @if (loading()) {
+      <p-skeleton width="60%" height="2rem" />
+      } @else {
+      <p class="ls-sum-value ls-value-debit">{{ totalDebit() | number:"1.2-2" }}</p>
+      }
+    </div>
+
+    <!-- Total Credit -->
+    <div class="ls-summary-card">
+      <p class="ls-sum-label">Total Credit</p>
+      @if (loading()) {
+      <p-skeleton width="60%" height="2rem" />
+      } @else {
+      <p class="ls-sum-value ls-value-credit">{{ totalCredit() | number:"1.2-2" }}</p>
+      }
+    </div>
+
+    <!-- Closing Balance -->
+    <div class="ls-summary-card">
+      <p class="ls-sum-label">Closing Balance</p>
+      @if (loading()) {
+      <p-skeleton width="60%" height="2rem" />
+      } @else {
+      <p class="ls-sum-value" [ngClass]="summary()!.ClosingBalance < 0 ? 'ls-value-debit' : 'ls-value-credit'">
+        {{ summary()!.ClosingBalance | number:"1.2-2" }}
+      </p>
+      }
+    </div>
+  </div>
+
+  <!-- Results Table -->
+  <div class="tbl-card">
+    <p-table [value]="loading() ? skeletonRows : lines()" [columns]="cols" dataKey="Vou_No"
+      styleClass="p-datatable-sm tbl-datatable" responsiveLayout="scroll" [rowHover]="true"
+      [tableStyle]="{ 'min-width': '50rem' }">
+      <ng-template #header let-columns>
+        <tr>
+          @for (col of columns; track col.field) {
+          <th [style.width]="col.width ?? 'auto'" [style.text-align]="col.alignRight ? 'right' : 'left'"
+            [class.hide-sm]="col.hideOnMobile">
+            <div class="th-inner" [style.justify-content]="col.alignRight ? 'flex-end' : 'flex-start'">
+              {{ col.header }}
+            </div>
+          </th>
+          }
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-row let-columns="columns">
+        @if (row._skeleton !== undefined || loading()) {
+        <tr>
+          @for (col of columns; track col.field) {
+          <td [class.hide-sm]="col.hideOnMobile">
+            <p-skeleton height="1rem" [style]="{ 'border-radius': '6px' }" />
+          </td>
+          }
+        </tr>
+        } @else {
+        <tr>
+          <td><span class="tbl-remarks-cell">{{ row.Vou_Date | date:"dd/MM/yyyy" }}</span></td>
+          <td><span class="tbl-code-badge">{{ row.Vou_No }}</span></td>
+          <td class="hide-sm"><span class="tbl-remarks-cell">{{ row.VoucherType }}</span></td>
+          <td class="hide-sm"><span class="tbl-remarks-cell">{{ row.Narration || "—" }}</span></td>
+          <td style="text-align: right;">
+            <span class="ls-value-debit" style="font-weight: 500;">
+              {{ row.Debit ? (row.Debit | number:"1.2-2") : "" }}
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <span class="ls-value-credit" style="font-weight: 500;">
+              {{ row.Credit ? (row.Credit | number:"1.2-2") : "" }}
+            </span>
+          </td>
+          <td style="text-align: right;">
+            <span style="font-weight: 600;" [ngClass]="row.RunningBalance < 0 ? 'ls-value-debit' : 'ls-value-credit'">
+              {{ row.RunningBalance | number:"1.2-2" }}
+            </span>
+          </td>
+        </tr>
+        }
+      </ng-template>
+
+      <ng-template #emptymessage let-columns>
+        <tr>
+          <td [attr.colspan]="columns.length">
+            <div class="tbl-empty" style="padding: 3rem 0;">
+              <div class="tbl-empty-icon"><i class="pi pi-bar-chart"></i></div>
+              <p class="tbl-empty-title">No transactions found</p>
+              <p class="tbl-empty-hint">There are no vouchers in this ledger for the selected period.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  }
+</div>

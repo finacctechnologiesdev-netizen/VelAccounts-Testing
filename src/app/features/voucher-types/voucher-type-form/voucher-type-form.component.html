@@ -1,0 +1,92 @@
+<form [formGroup]="form" (ngSubmit)="save()" class="frm-layout" novalidate>
+
+  <!-- Code -->
+  <div class="frm-field">
+    <label class="frm-label" for="vt-code">
+      Type Code <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['VTyp_Code'].invalid && f['VTyp_Code'].touched">
+      <i class="pi pi-hashtag frm-prefix-icon"></i>
+      <input
+        id="vt-code"
+        class="frm-input frm-input--has-icon"
+        type="text"
+        formControlName="VTyp_Code"
+        placeholder="e.g. RCPT"
+        autocomplete="off"
+        maxlength="20" />
+    </div>
+    @if (f['VTyp_Code'].invalid && f['VTyp_Code'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Type code is required.
+      </span>
+    }
+  </div>
+
+  <!-- Name -->
+  <div class="frm-field">
+    <label class="frm-label" for="vt-name">
+      Type Name <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['VTyp_Name'].invalid && f['VTyp_Name'].touched">
+      <i class="pi pi-tag frm-prefix-icon"></i>
+      <input
+        id="vt-name"
+        class="frm-input frm-input--has-icon"
+        type="text"
+        formControlName="VTyp_Name"
+        placeholder="e.g. Receipt Voucher"
+        autocomplete="off"
+        maxlength="100" />
+    </div>
+    @if (f['VTyp_Name'].invalid && f['VTyp_Name'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Type name is required.
+      </span>
+    }
+  </div>
+
+  <!-- Cash Type -->
+  <div class="frm-field">
+    <label class="frm-label" for="cash-type">
+      Cash Type <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Cash_Type'].invalid && f['Cash_Type'].touched">
+      <select 
+        id="cash-type" 
+        class="frm-input" 
+        formControlName="Cash_Type" 
+        [class.placeholder]="!f['Cash_Type'].value">
+        <option [ngValue]="null" disabled>Select Cash Type</option>
+        <option value="IN">IN — Credit (money received)</option>
+        <option value="OUT">OUT — Debit (money paid)</option>
+      </select>
+    </div>
+    @if (f['Cash_Type'].invalid && f['Cash_Type'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Cash type is required.
+      </span>
+    }
+  </div>
+
+  <!-- Footer Buttons -->
+  <div class="frm-footer">
+    <button type="button" class="ui-btn ui-btn--cancel" (click)="cancel()" id="btn-frm-cancel">
+      <i class="pi pi-times"></i>
+      Cancel
+    </button>
+    <button type="submit" class="ui-btn ui-btn--save" [disabled]="saving" id="btn-frm-save">
+      @if (saving) {
+        <i class="pi pi-spin pi-spinner"></i>
+        Saving…
+      } @else {
+        <i class="pi pi-check"></i>
+        {{ row() ? 'Update' : 'Create' }}
+      }
+    </button>
+  </div>
+
+</form>

@@ -1,150 +1,146 @@
-<div class="account-select-container">
-  <!-- Header -->
-  <header class="app-header">
-    <div class="header-brand">
-      <span class="material-icons brand-icon">account_balance</span>
-      <span class="brand-title">VelAccounts</span>
-    </div>
-    <div class="header-actions">
-      <span class="user-name">{{ user()?.User_Name }}</span>
-      <button class="icon-btn logout-btn" (click)="logout()" title="Logout">
-        <span class="material-icons">logout</span>
-      </button>
-    </div>
-  </header>
+<p-toast />
+<p-confirmDialog />
 
-  <!-- Main Content Layout -->
-  <div class="main-layout">
-    
-    <!-- Left Pane: Accounts List -->
-    <div class="list-section">
-      <div class="section-header">
-        <div class="header-texts">
-          <h2>Books of Accounts</h2>
-          <p>Select a book to start working</p>
-        </div>
-        @if (isAdmin()) {
-          <button class="action-btn primary mobile-only" (click)="openCreateForm()">
-            <span class="material-icons">add</span> New
-          </button>
-        }
+<div class="landing-wrapper">
+  
+  <!-- ── Left Branding Pane ─────────────────────────────────────── -->
+  <div class="landing-brand hide-sm">
+    <div class="brand-background"></div>
+    <div class="brand-content">
+      <img src="images/velAccount-logo.png" alt="VelAccounts" class="brand-logo" />
+      
+      <div class="typewriter-wrapper">
+        <div class="tw-line tw-1">Velusamy</div>
+        <div class="tw-line tw-2">Accounting Software.</div>
       </div>
+      
+      <p class="brand-subtitle">
+        Your complete financial management solution. Navigate through your structured account books with ease and security.
+      </p>
 
-      <div class="list-content" [class.loading]="loading()">
-        @if (loading()) {
-          <div class="loader-container">
-            <div class="spinner loader-spinner"></div>
-          </div>
-        }
-        
-        @if (!loading() && accounts().length === 0) {
-          <div class="empty-state">
-            <span class="material-icons empty-icon">menu_book</span>
-            <p>No books of accounts yet.</p>
-            @if (isAdmin()) {
-              <button class="action-btn primary" (click)="openCreateForm()">
-                <span class="material-icons">add</span> Create First Account
-              </button>
-            } @else {
-              <p class="hint-text">Contact your administrator to create a book of accounts.</p>
-            }
-          </div>
-        }
+      <div class="brand-features">
+        <div class="feature-item delay-3">
+          <i class="pi pi-shield"></i>
+          <span>Secure ledgers</span>
+        </div>
+        <div class="feature-item delay-4">
+          <i class="pi pi-bolt"></i>
+          <span>Lightning fast queries</span>
+        </div>
+        <div class="feature-item delay-5">
+          <i class="pi pi-chart-pie"></i>
+          <span>Deep financial reporting</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="accounts-list">
-          @for (acc of accounts(); track acc.AccSno) {
-            <div class="account-item" (click)="select(acc)">
-              <div class="acc-avatar">
-                <span class="material-icons">menu_book</span>
+  <!-- ── Right Content Pane ─────────────────────────────────────── -->
+  <div class="landing-content">
+    
+    <!-- Floating Profile Menu Button -->
+    <div class="floating-profile">
+      <button class="profile-btn" (click)="userMenu.toggle($event)" aria-haspopup="true">
+        <span class="profile-name">{{ user()?.User_Name }}</span>
+        <span class="profile-avatar"><i class="pi pi-user"></i></span>
+      </button>
+      <p-menu #userMenu [model]="userMenuItems" [popup]="true" appendTo="body" styleClass="user-popup-menu" />
+    </div>
+
+    <!-- Main Section -->
+    <main class="content-main">
+      <div class="content-inner">
+        <div class="main-title-row">
+          <div>
+            <h2 class="greeting">Welcome back, {{ user()?.User_Name?.split(' ')?.[0] || 'User' }}!</h2>
+            <p>Select a book of accounts to start working</p>
+          </div>
+          @if (isAdmin()) {
+            <button class="ui-btn ui-btn--primary" (click)="openCreateForm()">
+              <i class="pi pi-plus"></i>
+              <span>New Book</span>
+            </button>
+          }
+        </div>
+
+        <div class="list-container">
+          @if (loading()) {
+            <div class="loading-state">
+              <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+              <p>Loading your accounts...</p>
+            </div>
+          } @else if (accounts().length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class="pi pi-wallet"></i>
               </div>
-              <div class="acc-details">
-                <span class="acc-name">{{ acc.Acc_Name }}</span>
-                <span class="acc-code">{{ acc.Acc_Code }}</span>
-                @if (acc.Remarks) {
-                  <span class="acc-remarks">{{ acc.Remarks }}</span>
-                }
-              </div>
-              
-              <div class="acc-actions">
-                @if (isAdmin()) {
-                  <button class="icon-btn edit-btn" (click)="openEditForm(acc, $event)" title="Edit">
-                    <span class="material-icons">edit</span>
-                  </button>
-                  <button class="icon-btn delete-btn" (click)="deleteAccount(acc, $event)" title="Delete">
-                    <span class="material-icons">delete</span>
-                  </button>
-                }
-                <span class="material-icons arrow-icon">chevron_right</span>
-              </div>
+              <h3>No books found</h3>
+              <p>You don't have any books of accounts setup yet.</p>
+              @if (isAdmin()) {
+                <button class="ui-btn ui-btn--primary" (click)="openCreateForm()" style="margin-top: 1rem">
+                  <i class="pi pi-plus"></i>
+                  <span>Create Book</span>
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="accounts-grid">
+              @for (acc of accounts(); track acc.AccSno) {
+                <div class="account-card" (click)="select(acc)">
+                  <div class="acc-avatar">
+                    <i class="pi pi-book"></i>
+                  </div>
+                  <div class="acc-details">
+                    <h3 class="acc-name">{{ acc.Acc_Name }}</h3>
+                    <span class="acc-code">{{ acc.Acc_Code }}</span>
+                    @if (acc.Remarks) {
+                      <p class="acc-remarks">{{ acc.Remarks }}</p>
+                    }
+                  </div>
+
+                  <div class="acc-actions">
+                    @if (isAdmin()) {
+                      <button class="action-btn action-btn--edit" (click)="openEditForm(acc, $event)" pTooltip="Edit">
+                        <i class="pi pi-pencil"></i>
+                      </button>
+                      <button class="action-btn action-btn--delete" (click)="deleteAccount(acc, $event)" pTooltip="Delete">
+                        <i class="pi pi-trash"></i>
+                      </button>
+                    }
+                    <i class="pi pi-chevron-right action-arrow hide-xs"></i>
+                  </div>
+                </div>
+              }
             </div>
           }
         </div>
       </div>
-    </div>
+    </main>
 
-    <!-- Right Pane: Form -->
-    <div class="form-section" [class.show-mobile]="formVisible">
-      <div class="form-card">
-        <div class="form-header">
-          <h2>
-            <span class="material-icons header-icon">menu_book</span>
-            {{ editingAccount ? 'Edit' : 'New' }} Book
-          </h2>
-          <button class="icon-btn close-btn mobile-only" (click)="closeFormPopup()" title="Close">
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-
-        <form [formGroup]="form" (ngSubmit)="saveAccount()" class="account-form">
-          <div class="va-form-group">
-            <label class="va-label" for="accCode">Account Code</label>
-            <div class="va-input-wrapper has-prefix">
-              <span class="material-icons va-prefix-icon">tag</span>
-              <input id="accCode" class="va-input" formControlName="Acc_Code" placeholder="e.g. FY2425" />
-            </div>
-            @if (form.controls.Acc_Code.touched && form.controls.Acc_Code.hasError('required')) {
-              <div class="va-error-msg"><span class="material-icons">error_outline</span> Code is required</div>
-            }
-          </div>
-
-          <div class="va-form-group">
-            <label class="va-label" for="accName">Account Name</label>
-            <div class="va-input-wrapper has-prefix">
-              <span class="material-icons va-prefix-icon">title</span>
-              <input id="accName" class="va-input" formControlName="Acc_Name" placeholder="e.g. Financial Year 2024-25" />
-            </div>
-            @if (form.controls.Acc_Name.touched && form.controls.Acc_Name.hasError('required')) {
-              <div class="va-error-msg"><span class="material-icons">error_outline</span> Name is required</div>
-            }
-          </div>
-
-          <div class="va-form-group">
-            <label class="va-label" for="remarks">Remarks</label>
-            <div class="va-input-wrapper has-prefix">
-              <span class="material-icons va-prefix-icon">notes</span>
-              <input id="remarks" class="va-input" formControlName="Remarks" placeholder="Optional notes" />
-            </div>
-          </div>
-
-          <div class="form-actions">
-            @if (editingAccount) {
-              <button type="button" class="action-btn secondary form-cancel-btn" (click)="cancelEdit()">Cancel</button>
-            }
-            <button type="submit" [disabled]="saving()" class="submit-btn" [class.flex-btn]="editingAccount">
-              @if (saving()) {
-                <div class="spinner"></div>
-              } @else {
-                {{ editingAccount ? 'Update Account' : 'Create Account' }}
-              }
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-    
-    <!-- Mobile overlay backdrop -->
-    @if (formVisible) {
-      <div class="mobile-backdrop mobile-only" (click)="closeFormPopup()"></div>
-    }
   </div>
+
 </div>
+
+<!-- ── Form Dialog ─────────────────────────────────────────────── -->
+<p-dialog
+  [(visible)]="formVisible"
+  [header]="editingAccount ? 'Edit Book of Account' : 'New Book of Account'"
+  [modal]="true"
+  [focusOnShow]="false"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '460px' }"
+  [breakpoints]="{ '640px': '95vw' }"
+  [contentStyle]="{ padding: '0' }"
+  styleClass="frm-dialog"
+  (onHide)="closeFormPopup()"
+>
+  @if (formVisible) {
+    <app-account-form
+      [row]="editingAccount"
+      (saved)="onFormSaved()"
+      (cancelled)="closeFormPopup()"
+    />
+  }
+</p-dialog>

@@ -1,101 +1,143 @@
-
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { FormsModule } from '@angular/forms';
+
+// PrimeNG Table
+import { Table, TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { TooltipModule } from 'primeng/tooltip';
+import { TagModule } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToastModule } from 'primeng/toast';
+import { SkeletonModule } from 'primeng/skeleton';
+import { SelectModule } from 'primeng/select';
+import { MessageService, ConfirmationService } from 'primeng/api';
+
 import { LedgersService } from '../../../core/services/api.services';
 import { Ledger } from '../../../core/models';
 import { LedgerFormComponent } from '../ledger-form/ledger-form.component';
-import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+
+interface ColDef {
+  field: string;
+  header: string;
+  exportHeader?: string;
+  sortable?: boolean;
+  width?: string;
+  hideOnMobile?: boolean;
+}
 
 @Component({
   selector: 'app-ledgers-list',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule,
-            MatCardModule, MatTooltipModule, MatProgressBarModule],
-  template: `
-    <div class="page-header">
-      <h2 class="page-title">Ledgers</h2>
-      <button mat-flat-button color="primary" (click)="openForm()">
-        <mat-icon>add</mat-icon> New Ledger
-      </button>
-    </div>
-    <mat-card>
-      @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
-      <table mat-table [dataSource]="items()" class="full-table">
-        <ng-container matColumnDef="Led_Code">
-          <th mat-header-cell *matHeaderCellDef>Code</th>
-          <td mat-cell *matCellDef="let r">{{ r.Led_Code }}</td>
-        </ng-container>
-        <ng-container matColumnDef="Led_Name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
-          <td mat-cell *matCellDef="let r">{{ r.Led_Name }}</td>
-        </ng-container>
-        <ng-container matColumnDef="Grp_Name">
-          <th mat-header-cell *matHeaderCellDef>Group</th>
-          <td mat-cell *matCellDef="let r">{{ r.Grp_Name }}</td>
-        </ng-container>
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let r">
-            <button mat-icon-button matTooltip="Edit" (click)="openForm(r)"><mat-icon>edit</mat-icon></button>
-            <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDelete(r)"><mat-icon>delete</mat-icon></button>
-          </td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="cols"></tr>
-        <tr mat-row *matRowDef="let row; columns: cols;"></tr>
-      </table>
-      @if (!loading() && items().length === 0) {
-        <div class="empty-state"><mat-icon>account_tree</mat-icon><p>No ledgers yet.</p></div>
-      }
-    </mat-card>
-  `,
-  styles: [`
-  .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-  .page-title  { margin:0; font-size:22px; }
-  .full-table  { width:100%; }
-  .empty-state { display:flex; flex-direction:column; align-items:center; padding:48px; color:#aaa; }
-  .empty-state mat-icon { font-size:48px; width:48px; height:48px; }
-`],
+  imports: [
+    CommonModule, FormsModule,
+    TableModule, ButtonModule, InputTextModule,
+    IconFieldModule, InputIconModule, TooltipModule,
+    TagModule, DialogModule, ConfirmDialogModule, ToastModule,
+    SkeletonModule, SelectModule,
+    LedgerFormComponent,
+  ],
+  providers: [MessageService, ConfirmationService],
+  templateUrl: './ledgers-list.component.html',
 })
 export class LedgersListComponent implements OnInit {
-  private svc    = inject(LedgersService);
-  private dialog = inject(MatDialog);
-  private snack  = inject(MatSnackBar);
 
-  loading = signal(false);
+  @ViewChild('dt') table!: Table;
+
+  private readonly svc     = inject(LedgersService);
+  private readonly toast   = inject(MessageService);
+  private readonly confirm = inject(ConfirmationService);
+
+  // ── Data ───────────────────────────────────────────────────────
+  loading = signal(true);
   items   = signal<Ledger[]>([]);
-  cols    = ['Led_Code', 'Led_Name', 'Grp_Name', 'actions'];
 
-  ngOnInit() { this.load(); }
+  readonly skeletonRows = Array.from({ length: 8 });
+  readonly rowsOptions  = [
+    { label: '10 rows', value: 10 },
+    { label: '25 rows', value: 25 },
+    { label: '50 rows', value: 50 },
+  ];
 
-  load() {
+  // ── Column definitions (drives header, export & body) ──────────
+  readonly cols: ColDef[] = [
+    { field: 'Led_Code', header: 'Code',  exportHeader: 'Ledger Code', sortable: true, width: '130px' },
+    { field: 'Led_Name', header: 'Name',  exportHeader: 'Ledger Name', sortable: true },
+    { field: 'Grp_Name', header: 'Group', exportHeader: 'Group Name',  sortable: true },
+  ];
+
+  // ── Dialog ─────────────────────────────────────────────────────
+  formVisible = false;
+  editRow: Ledger | undefined;
+
+  ngOnInit(): void { this.load(); }
+
+  // ── CRUD ───────────────────────────────────────────────────────
+  load(): void {
     this.loading.set(true);
     this.svc.list().subscribe({
-      next: r  => { this.items.set(r.data ?? []); this.loading.set(false); },
+      next:  r  => { this.items.set(r.data ?? []); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
   }
 
-  openForm(row?: Ledger) {
-    this.dialog.open(LedgerFormComponent, { width: '520px', data: row })
-      .afterClosed().subscribe(saved => { if (saved) this.load(); });
+  openNew(): void {
+    this.editRow     = undefined;
+    this.formVisible = true;
   }
 
-  confirmDelete(row: Ledger) {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'Delete Ledger', message: `Delete "${row.Led_Name}"?`, danger: true, confirmText: 'Delete' }
-    }).afterClosed().subscribe(ok => {
-      if (!ok) return;
-      this.svc.delete(row.LedSno, row.CurrentRowVer).subscribe({
-        next: () => { this.snack.open('Deleted.', 'OK'); this.load(); },
-      });
+  openEdit(row: Ledger): void {
+    // Spread to a fresh object so form patch doesn't mutate the table row reference
+    this.editRow     = { ...row };
+    this.formVisible = true;
+  }
+
+  onFormSaved(): void {
+    this.formVisible = false;
+    this.load();
+    this.toast.add({ severity: 'success', summary: 'Success', detail: 'Ledger saved successfully.' });
+  }
+
+  onFormCancelled(): void {
+    this.formVisible = false;
+    this.editRow     = undefined;
+  }
+
+  deleteRow(row: Ledger): void {
+    this.confirm.confirm({
+      header:  'Confirm Delete',
+      message: `Delete ledger "<strong>${row.Led_Name}</strong>"? This cannot be undone.`,
+      icon:    'pi pi-exclamation-triangle',
+      acceptButtonProps: { label: 'Yes, Delete', severity: 'danger', icon: 'pi pi-trash' },
+      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      accept: () => {
+        this.svc.delete(row.LedSno, row.CurrentRowVer).subscribe({
+          next:  () => {
+            this.toast.add({ severity: 'warn', summary: 'Deleted', detail: `"${row.Led_Name}" has been deleted.`, icon: 'pi pi-trash' });
+            this.load();
+          },
+          error: () => this.toast.add({ severity: 'error', summary: 'Error', detail: 'Could not delete. Please try again.' }),
+        });
+      },
     });
+  }
+
+  // ── PrimeNG Table built-in export (uses table's exportCSV()) ───
+  exportCSV(): void {
+    this.table.exportCSV();
+  }
+
+  // ── Global search via PrimeNG filterGlobal ─────────────────────
+  onGlobalFilter(event: Event): void {
+    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+  }
+
+  clearSearch(input: HTMLInputElement): void {
+    input.value = '';
+    this.table.filterGlobal('', 'contains');
   }
 }

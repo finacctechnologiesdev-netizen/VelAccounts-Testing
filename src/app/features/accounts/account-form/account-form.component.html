@@ -1,0 +1,79 @@
+<form [formGroup]="form" (ngSubmit)="save()" class="frm-layout" novalidate>
+
+  <!-- Account Code -->
+  <div class="frm-field">
+    <label class="frm-label" for="acc-code">
+      Account Code <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Acc_Code'].invalid && f['Acc_Code'].touched">
+      <i class="pi pi-hashtag frm-prefix-icon"></i>
+      <input
+        id="acc-code"
+        class="frm-input frm-input--has-icon"
+        type="text"
+        formControlName="Acc_Code"
+        placeholder="e.g. ACC01"
+        autocomplete="off" />
+    </div>
+    @if (f['Acc_Code'].invalid && f['Acc_Code'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Account code is required.
+      </span>
+    }
+  </div>
+
+  <!-- Account Name -->
+  <div class="frm-field">
+    <label class="frm-label" for="acc-name">
+      Account Name <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Acc_Name'].invalid && f['Acc_Name'].touched">
+      <i class="pi pi-wallet frm-prefix-icon"></i>
+      <input
+        id="acc-name"
+        class="frm-input frm-input--has-icon"
+        type="text"
+        formControlName="Acc_Name"
+        placeholder="e.g. Main Operations Account"
+        autocomplete="off" />
+    </div>
+    @if (f['Acc_Name'].invalid && f['Acc_Name'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Account name is required.
+      </span>
+    }
+  </div>
+
+  <!-- Remarks -->
+  <div class="frm-field">
+    <label class="frm-label" for="acc-remarks">Remarks</label>
+    <div class="frm-input-wrap">
+      <textarea
+        id="acc-remarks"
+        class="frm-textarea"
+        formControlName="Remarks"
+        rows="2"
+        placeholder="Optional details or description…"></textarea>
+    </div>
+  </div>
+
+  <!-- Footer Buttons -->
+  <div class="frm-footer">
+    <button type="button" class="ui-btn ui-btn--cancel" (click)="cancel()" id="btn-frm-cancel">
+      <i class="pi pi-times"></i>
+      Cancel
+    </button>
+    <button type="submit" class="ui-btn ui-btn--save" [disabled]="saving" id="btn-frm-save">
+      @if (saving) {
+        <i class="pi pi-spin pi-spinner"></i>
+        Saving…
+      } @else {
+        <i class="pi pi-check"></i>
+        {{ row() ? 'Update' : 'Create' }}
+      }
+    </button>
+  </div>
+
+</form>

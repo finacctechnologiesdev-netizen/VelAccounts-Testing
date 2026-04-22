@@ -1,92 +1,76 @@
+import { Component, inject, input, output, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
-import { Component, inject, OnInit, signal } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatInputModule } from "@angular/material/input";
-import { MatSelectModule } from "@angular/material/select";
-import { MatButtonModule } from "@angular/material/button";
-import { MatSnackBar } from "@angular/material/snack-bar";
-import { LedgersService, LedgerGroupsService } from "../../../core/services/api.services";
-import { Ledger, LedgerGroup } from "../../../core/models";
+import { LedgersService, LedgerGroupsService } from '../../../core/services/api.services';
+import { Ledger, LedgerGroup } from '../../../core/models';
 
 @Component({
-  selector: "app-ledger-form",
+  selector: 'app-ledger-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule,
-            MatInputModule, MatSelectModule, MatButtonModule],
-  template: `
-    <h2 mat-dialog-title>{{ row ? "Edit" : "New" }} Ledger</h2>
-    <mat-dialog-content>
-      <form [formGroup]="form" class="dialog-form">
-        <mat-form-field appearance="outline">
-          <mat-label>Code</mat-label>
-          <input matInput formControlName="Led_Code" />
-          <mat-error>Required</mat-error>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Name</mat-label>
-          <input matInput formControlName="Led_Name" />
-          <mat-error>Required</mat-error>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Group</mat-label>
-          <mat-select formControlName="GrpSno">
-            @for (g of groups(); track g.GrpSno) {
-              <mat-option [value]="g.GrpSno">{{ g.Grp_Name }}</mat-option>
-            }
-          </mat-select>
-          <mat-error>Required</mat-error>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Remarks</mat-label>
-          <input matInput formControlName="Remarks" />
-        </mat-form-field>
-      </form>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-flat-button color="primary" (click)="save()" [disabled]="saving">
-        {{ saving ? "Saving…" : "Save" }}
-      </button>
-    </mat-dialog-actions>
-  `,
-  styles: [".dialog-form { display:flex; flex-direction:column; gap:4px; padding-top:8px; min-width:360px; }"],
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './ledger-form.component.html',
 })
 export class LedgerFormComponent implements OnInit {
-  private svc      = inject(LedgersService);
-  private grpSvc   = inject(LedgerGroupsService);
-  private fb       = inject(FormBuilder);
-  private snack    = inject(MatSnackBar);
-  private ref      = inject(MatDialogRef<LedgerFormComponent>);
-  readonly row     = inject<Ledger | undefined>(MAT_DIALOG_DATA);
+
+  /** Pass a Ledger to edit; undefined → create mode. */
+  readonly row = input<Ledger | undefined>(undefined);
+
+  readonly saved     = output<void>();
+  readonly cancelled = output<void>();
+
+  private readonly svc      = inject(LedgersService);
+  private readonly grpSvc   = inject(LedgerGroupsService);
+  private readonly fb       = inject(FormBuilder);
 
   saving = false;
   groups = signal<LedgerGroup[]>([]);
 
   form = this.fb.nonNullable.group({
-    Led_Code: ["", Validators.required],
-    Led_Name: ["", Validators.required],
+    Led_Code: ['', [Validators.required, Validators.maxLength(20)]],
+    Led_Name: ['', [Validators.required, Validators.maxLength(100)]],
     GrpSno:   [0,  Validators.required],
-    Remarks:  [""],
+    Remarks:  ['', [Validators.maxLength(250)]],
   });
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.grpSvc.list().subscribe(r => this.groups.set(r.data ?? []));
-    if (this.row) this.form.patchValue(this.row);
+    
+    const r = this.row();
+    if (r) {
+      this.form.patchValue({
+        Led_Code: r.Led_Code,
+        Led_Name: r.Led_Name,
+        GrpSno:   r.GrpSno,
+        Remarks:  r.Remarks ?? '',
+      });
+    }
   }
 
-  save() {
+  save(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    
+    // Additional validation to ensure group is selected
+    if (this.form.controls.GrpSno.value === 0) {
+      this.form.controls.GrpSno.setErrors({ 'required': true });
+      this.form.markAllAsTouched();
+      return;
+    }
+
     this.saving = true;
     const v   = this.form.getRawValue();
-    const obs = this.row
-      ? this.svc.update(this.row.LedSno, { ...v, CurrentRowVer: this.row.CurrentRowVer })
+    const r   = this.row();
+    const obs = r
+      ? this.svc.update(r.LedSno, { ...v, CurrentRowVer: r.CurrentRowVer })
       : this.svc.create(v);
+
     obs.subscribe({
-      next: () => { this.snack.open("Saved.", "OK"); this.ref.close(true); },
+      next:  () => { this.saving = false; this.saved.emit(); },
       error: () => { this.saving = false; },
     });
   }
+
+  cancel(): void { this.cancelled.emit(); }
+
+  get f() { return this.form.controls; }
 }

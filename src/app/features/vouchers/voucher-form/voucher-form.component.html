@@ -1,0 +1,164 @@
+<form [formGroup]="form" (ngSubmit)="save()" class="frm-layout" novalidate>
+
+  <!-- Series Selection (only on new, read from row state) -->
+  @if (!row()) {
+    <div class="frm-field">
+      <label class="frm-label" for="vch-series">
+        Series <span class="frm-required">*</span>
+      </label>
+      <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['SeriesSno'].invalid && f['SeriesSno'].touched">
+        <select 
+          id="vch-series" 
+          class="frm-input" 
+          formControlName="SeriesSno"
+          (change)="onSeriesChange()"
+          [class.placeholder]="f['SeriesSno'].value === 0">
+          <option [ngValue]="0" disabled>Select Series</option>
+          @for (s of series(); track s.SeriesSno) {
+            <option [ngValue]="s.SeriesSno">{{ s.Series_Name }} ({{ s.Numbering_Method }})</option>
+          }
+        </select>
+      </div>
+      @if (f['SeriesSno'].invalid && f['SeriesSno'].touched) {
+        <span class="frm-error">
+          <i class="pi pi-exclamation-circle"></i>
+          Series is required.
+        </span>
+      }
+    </div>
+  }
+
+  <!-- Voucher Number Generation / Display -->
+  @if (showVouNo()) {
+    <div class="frm-field">
+      <label class="frm-label" for="vch-no">
+        Voucher No <span class="frm-required">*</span>
+      </label>
+      <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Vou_No'].invalid && f['Vou_No'].touched">
+        <i class="pi pi-hashtag frm-prefix-icon"></i>
+        <input
+          id="vch-no"
+          class="frm-input frm-input--has-icon"
+          type="text"
+          formControlName="Vou_No"
+          [readonly]="selectedSeries()?.Numbering_Method === 'SEMI'"
+          autocomplete="off" />
+      </div>
+      <span class="frm-hint">
+        {{ selectedSeries()?.Numbering_Method === "SEMI" ? "System suggested (you can edit)" : "Enter manually" }}
+      </span>
+      @if (f['Vou_No'].invalid && f['Vou_No'].touched) {
+        <span class="frm-error">
+          <i class="pi pi-exclamation-circle"></i>
+          Voucher number required for this series.
+        </span>
+      }
+    </div>
+  } @else if (!row()) {
+    <div class="frm-field" style="background: var(--color-surface-subtle); padding: 10px 14px; border-radius: var(--border-radius-md); border: 1px dashed var(--color-border-strong); margin-bottom: 12px;">
+      <span style="font-size: 13px; color: var(--color-text-muted);">
+        Voucher No: <strong style="color: var(--color-text-main);">{{ nextNoPreview() || "Auto-generated on save" }}</strong>
+      </span>
+    </div>
+  }
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+    <!-- Date -->
+    <div class="frm-field">
+      <label class="frm-label">
+        Date <span class="frm-required">*</span>
+      </label>
+      <p-datepicker 
+        formControlName="Vou_Date" 
+        dateFormat="dd/mm/yy" 
+        [showIcon]="true"
+        appendTo="body" 
+        [style]="{'width': '100%'}">
+      </p-datepicker>
+      @if (f['Vou_Date'].invalid && f['Vou_Date'].touched) {
+        <span class="frm-error">
+          <i class="pi pi-exclamation-circle"></i>
+          Date is required.
+        </span>
+      }
+    </div>
+
+    <!-- Amount -->
+    <div class="frm-field">
+      <label class="frm-label" for="vch-amount">
+        Amount <span class="frm-required">*</span>
+      </label>
+      <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Amount'].invalid && f['Amount'].touched">
+        <i class="pi pi-indian-rupee frm-prefix-icon"></i>
+        <input
+          id="vch-amount"
+          class="frm-input frm-input--has-icon"
+          type="number"
+          min="0.01" step="0.01"
+          formControlName="Amount" />
+      </div>
+      @if (f['Amount'].invalid && f['Amount'].touched) {
+        <span class="frm-error">
+          <i class="pi pi-exclamation-circle"></i>
+          Valid amount required.
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- Ledger -->
+  <div class="frm-field">
+    <label class="frm-label" for="vch-ledger">
+      Ledger <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['LedSno'].invalid && f['LedSno'].touched">
+      <select 
+        id="vch-ledger" 
+        class="frm-input" 
+        formControlName="LedSno"
+        [class.placeholder]="f['LedSno'].value === 0">
+        <option [ngValue]="0" disabled>Select Ledger</option>
+        @for (l of ledgers(); track l.LedSno) {
+          <option [ngValue]="l.LedSno">{{ l.Led_Name }}</option>
+        }
+      </select>
+    </div>
+    @if (f['LedSno'].invalid && f['LedSno'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Ledger is required.
+      </span>
+    }
+  </div>
+
+  <!-- Narration -->
+  <div class="frm-field">
+    <label class="frm-label" for="vch-narration">Narration</label>
+    <div class="frm-input-wrap">
+      <textarea
+        id="vch-narration"
+        class="frm-textarea"
+        formControlName="Narration"
+        rows="2"
+        placeholder="Optional details or remarks…"></textarea>
+    </div>
+  </div>
+
+  <!-- Footer Buttons -->
+  <div class="frm-footer">
+    <button type="button" class="ui-btn ui-btn--cancel" (click)="cancel()" id="btn-vch-cancel">
+      <i class="pi pi-times"></i>
+      Cancel
+    </button>
+    <button type="submit" class="ui-btn ui-btn--save" [disabled]="saving" id="btn-vch-save">
+      @if (saving) {
+        <i class="pi pi-spin pi-spinner"></i>
+        Saving…
+      } @else {
+        <i class="pi pi-check"></i>
+        {{ row() ? 'Update' : 'Create' }}
+      }
+    </button>
+  </div>
+
+</form>

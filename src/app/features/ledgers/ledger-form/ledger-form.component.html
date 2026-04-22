@@ -1,0 +1,110 @@
+<form [formGroup]="form" (ngSubmit)="save()" class="frm-layout" novalidate>
+
+  <!-- Code -->
+  <div class="frm-field">
+    <label class="frm-label" for="led-code">
+      Ledger Code <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Led_Code'].invalid && f['Led_Code'].touched">
+      <i class="pi pi-hashtag frm-prefix-icon"></i>
+      <input
+        id="led-code"
+        class="frm-input frm-input--has-icon"
+        type="text"
+        formControlName="Led_Code"
+        placeholder="e.g. CASH"
+        autocomplete="off"
+        maxlength="20" />
+    </div>
+    @if (f['Led_Code'].invalid && f['Led_Code'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Ledger code is required.
+      </span>
+    }
+  </div>
+
+  <!-- Name -->
+  <div class="frm-field">
+    <label class="frm-label" for="led-name">
+      Ledger Name <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Led_Name'].invalid && f['Led_Name'].touched">
+      <i class="pi pi-tag frm-prefix-icon"></i>
+      <input
+        id="led-name"
+        class="frm-input frm-input--has-icon"
+        type="text"
+        formControlName="Led_Name"
+        placeholder="e.g. Cash Account"
+        autocomplete="off"
+        maxlength="100" />
+    </div>
+    @if (f['Led_Name'].invalid && f['Led_Name'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Ledger name is required.
+      </span>
+    }
+  </div>
+
+  <!-- Group -->
+  <div class="frm-field">
+    <label class="frm-label" for="grp-sno">
+      Ledger Group <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['GrpSno'].invalid && f['GrpSno'].touched">
+      <!-- We can just use standard select or p-dropdown if imported, but form is using native select or similar -->
+      <select 
+        id="grp-sno" 
+        class="frm-input" 
+        formControlName="GrpSno" 
+        [class.placeholder]="!f['GrpSno'].value">
+        <option [ngValue]="0" disabled>Select Group</option>
+        @for (g of groups(); track g.GrpSno) {
+          <option [ngValue]="g.GrpSno">{{ g.Grp_Name }}</option>
+        }
+      </select>
+    </div>
+    @if (f['GrpSno'].invalid && f['GrpSno'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Ledger group is required.
+      </span>
+    }
+  </div>
+
+  <!-- Remarks -->
+  <div class="frm-field">
+    <label class="frm-label" for="led-remarks">Remarks</label>
+    <div class="frm-input-wrap">
+      <textarea
+        id="led-remarks"
+        class="frm-textarea"
+        formControlName="Remarks"
+        placeholder="Optional notes about this ledger…"
+        rows="3"
+        maxlength="250">
+      </textarea>
+    </div>
+    <span class="frm-hint">{{ f['Remarks'].value?.length || 0 }} / 250</span>
+  </div>
+
+  <!-- Footer Buttons -->
+  <div class="frm-footer">
+    <button type="button" class="ui-btn ui-btn--cancel" (click)="cancel()" id="btn-va-cancel">
+      <i class="pi pi-times"></i>
+      Cancel
+    </button>
+    <button type="submit" class="ui-btn ui-btn--save" [disabled]="saving" id="btn-va-save">
+      @if (saving) {
+        <i class="pi pi-spin pi-spinner"></i>
+        Saving…
+      } @else {
+        <i class="pi pi-check"></i>
+        {{ row() ? 'Update' : 'Create' }}
+      }
+    </button>
+  </div>
+
+</form>

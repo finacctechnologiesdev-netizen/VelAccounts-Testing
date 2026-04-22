@@ -1,109 +1,143 @@
+import { Component, inject, signal, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
-import { Component, inject, signal, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { MatTableModule } from "@angular/material/table";
-import { MatButtonModule } from "@angular/material/button";
-import { MatIconModule } from "@angular/material/icon";
-import { MatCardModule } from "@angular/material/card";
-import { MatDialog } from "@angular/material/dialog";
-import { MatSnackBar } from "@angular/material/snack-bar";
-import { MatTooltipModule } from "@angular/material/tooltip";
-import { MatProgressBarModule } from "@angular/material/progress-bar";
-import { VoucherSeriesService } from "../../../core/services/api.services";
-import { VoucherSeries } from "../../../core/models";
-import { VoucherSeriesFormComponent } from "../voucher-series-form/voucher-series-form.component";
-import { ConfirmDialogComponent } from "../../../shared/components/confirm-dialog/confirm-dialog.component";
+// PrimeNG Table
+import { Table, TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToastModule } from 'primeng/toast';
+import { SkeletonModule } from 'primeng/skeleton';
+import { SelectModule } from 'primeng/select';
+import { MessageService, ConfirmationService } from 'primeng/api';
+
+import { VoucherSeriesService } from '../../../core/services/api.services';
+import { VoucherSeries } from '../../../core/models';
+import { VoucherSeriesFormComponent } from '../voucher-series-form/voucher-series-form.component';
+
+interface ColDef {
+  field: string;
+  header: string;
+  exportHeader?: string;
+  sortable?: boolean;
+  width?: string;
+  hideOnMobile?: boolean;
+}
 
 @Component({
-  selector: "app-voucher-series-list",
+  selector: 'app-voucher-series-list',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule,
-            MatCardModule, MatTooltipModule, MatProgressBarModule],
-  template: `
-    <div class="page-header">
-      <h2 class="page-title">Voucher Series</h2>
-      <button mat-flat-button color="primary" (click)="openForm()">
-        <mat-icon>add</mat-icon> New Series
-      </button>
-    </div>
-    <mat-card>
-      @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
-      <table mat-table [dataSource]="items()" class="full-table">
-        <ng-container matColumnDef="Series_Name">
-          <th mat-header-cell *matHeaderCellDef>Series</th>
-          <td mat-cell *matCellDef="let r">{{ r.Series_Name }}</td>
-        </ng-container>
-        <ng-container matColumnDef="VTyp_Name">
-          <th mat-header-cell *matHeaderCellDef>Voucher Type</th>
-          <td mat-cell *matCellDef="let r">{{ r.VTyp_Name }}</td>
-        </ng-container>
-        <ng-container matColumnDef="Prefix">
-          <th mat-header-cell *matHeaderCellDef>Prefix</th>
-          <td mat-cell *matCellDef="let r">{{ r.Prefix }}</td>
-        </ng-container>
-        <ng-container matColumnDef="Numbering_Method">
-          <th mat-header-cell *matHeaderCellDef>Numbering</th>
-          <td mat-cell *matCellDef="let r">{{ r.Numbering_Method }}</td>
-        </ng-container>
-        <ng-container matColumnDef="Current_No">
-          <th mat-header-cell *matHeaderCellDef>Current No</th>
-          <td mat-cell *matCellDef="let r">{{ r.Current_No }}</td>
-        </ng-container>
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let r">
-            <button mat-icon-button matTooltip="Edit" (click)="openForm(r)"><mat-icon>edit</mat-icon></button>
-            <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDelete(r)"><mat-icon>delete</mat-icon></button>
-          </td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="cols"></tr>
-        <tr mat-row *matRowDef="let row; columns: cols;"></tr>
-      </table>
-      @if (!loading() && items().length === 0) {
-        <div class="empty-state"><mat-icon>format_list_numbered</mat-icon><p>No voucher series yet.</p></div>
-      }
-    </mat-card>
-  `,
-  styles: [`
-  .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-  .page-title  { margin:0; font-size:22px; }
-  .full-table  { width:100%; }
-  .empty-state { display:flex; flex-direction:column; align-items:center; padding:48px; color:#aaa; }
-  .empty-state mat-icon { font-size:48px; width:48px; height:48px; }
-`],
+  imports: [
+    CommonModule, FormsModule,
+    TableModule, ButtonModule, InputTextModule,
+    IconFieldModule, InputIconModule, TooltipModule,
+    DialogModule, ConfirmDialogModule, ToastModule,
+    SkeletonModule, SelectModule,
+    VoucherSeriesFormComponent,
+  ],
+  providers: [MessageService, ConfirmationService],
+  templateUrl: './voucher-series-list.component.html',
 })
 export class VoucherSeriesListComponent implements OnInit {
-  private svc    = inject(VoucherSeriesService);
-  private dialog = inject(MatDialog);
-  private snack  = inject(MatSnackBar);
 
-  loading = signal(false);
+  @ViewChild('dt') table!: Table;
+
+  private readonly svc     = inject(VoucherSeriesService);
+  private readonly toast   = inject(MessageService);
+  private readonly confirm = inject(ConfirmationService);
+
+  // ── Data ───────────────────────────────────────────────────────
+  loading = signal(true);
   items   = signal<VoucherSeries[]>([]);
-  cols    = ["Series_Name", "VTyp_Name", "Prefix", "Numbering_Method", "Current_No", "actions"];
 
-  ngOnInit() { this.load(); }
+  readonly skeletonRows = Array.from({ length: 8 });
+  readonly rowsOptions  = [
+    { label: '10 rows', value: 10 },
+    { label: '25 rows', value: 25 },
+    { label: '50 rows', value: 50 },
+  ];
 
-  load() {
+  // ── Column definitions (drives header, export & body) ──────────
+  readonly cols: ColDef[] = [
+    { field: 'Series_Name',      header: 'Series',      exportHeader: 'Series Name',      sortable: true },
+    { field: 'VTyp_Name',        header: 'Type',        exportHeader: 'Voucher Type',     sortable: true },
+    { field: 'Prefix',           header: 'Prefix',      exportHeader: 'Prefix',           sortable: true },
+    { field: 'Numbering_Method', header: 'Method',      exportHeader: 'Numbering Method', sortable: true },
+    { field: 'Current_No',       header: 'Curr No',     exportHeader: 'Current No',       sortable: true, hideOnMobile: true },
+  ];
+
+  // ── Dialog ─────────────────────────────────────────────────────
+  formVisible = false;
+  editRow: VoucherSeries | undefined;
+
+  ngOnInit(): void { this.load(); }
+
+  // ── CRUD ───────────────────────────────────────────────────────
+  load(): void {
     this.loading.set(true);
     this.svc.list().subscribe({
-      next: r  => { this.items.set(r.data ?? []); this.loading.set(false); },
+      next:  r  => { this.items.set(r.data ?? []); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
   }
 
-  openForm(row?: VoucherSeries) {
-    this.dialog.open(VoucherSeriesFormComponent, { width: "560px", data: row })
-      .afterClosed().subscribe(saved => { if (saved) this.load(); });
+  openNew(): void {
+    this.editRow     = undefined;
+    this.formVisible = true;
   }
 
-  confirmDelete(row: VoucherSeries) {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: { title: "Delete Series", message: `Delete "${row.Series_Name}"?`, danger: true, confirmText: "Delete" }
-    }).afterClosed().subscribe(ok => {
-      if (!ok) return;
-      this.svc.delete(row.SeriesSno, row.CurrentRowVer).subscribe({
-        next: () => { this.snack.open("Deleted.", "OK"); this.load(); },
-      });
+  openEdit(row: VoucherSeries): void {
+    this.editRow     = { ...row };
+    this.formVisible = true;
+  }
+
+  onFormSaved(): void {
+    this.formVisible = false;
+    this.load();
+    this.toast.add({ severity: 'success', summary: 'Success', detail: 'Voucher Series saved successfully.' });
+  }
+
+  onFormCancelled(): void {
+    this.formVisible = false;
+    this.editRow     = undefined;
+  }
+
+  deleteRow(row: VoucherSeries): void {
+    this.confirm.confirm({
+      header:  'Confirm Delete',
+      message: `Delete voucher series "<strong>${row.Series_Name}</strong>"? This cannot be undone.`,
+      icon:    'pi pi-exclamation-triangle',
+      acceptButtonProps: { label: 'Yes, Delete', severity: 'danger', icon: 'pi pi-trash' },
+      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      accept: () => {
+        this.svc.delete(row.SeriesSno, row.CurrentRowVer).subscribe({
+          next:  () => {
+            this.toast.add({ severity: 'warn', summary: 'Deleted', detail: `"${row.Series_Name}" has been deleted.`, icon: 'pi pi-trash' });
+            this.load();
+          },
+          error: () => this.toast.add({ severity: 'error', summary: 'Error', detail: 'Could not delete. Please try again.' }),
+        });
+      },
     });
+  }
+
+  // ── PrimeNG Table built-in export (uses table's exportCSV()) ───
+  exportCSV(): void {
+    this.table.exportCSV();
+  }
+
+  // ── Global search via PrimeNG filterGlobal ─────────────────────
+  onGlobalFilter(event: Event): void {
+    this.table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+  }
+
+  clearSearch(input: HTMLInputElement): void {
+    input.value = '';
+    this.table.filterGlobal('', 'contains');
   }
 }

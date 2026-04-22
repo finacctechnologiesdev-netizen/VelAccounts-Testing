@@ -1,15 +1,15 @@
-<form [formGroup]="form" (ngSubmit)="save()" class="lgf" novalidate>
+<form [formGroup]="form" (ngSubmit)="save()" class="frm-layout" novalidate>
 
   <!-- Code -->
-  <div class="lgf-field">
-    <label class="lgf-label" for="grp-code">
-      Group Code <span class="lgf-required">*</span>
+  <div class="frm-field">
+    <label class="frm-label" for="grp-code">
+      Group Code <span class="frm-required">*</span>
     </label>
-    <div class="lgf-input-wrap" [class.lgf-input-wrap--error]="f['Grp_Code'].invalid && f['Grp_Code'].touched">
-      <i class="pi pi-hashtag lgf-prefix-icon"></i>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Grp_Code'].invalid && f['Grp_Code'].touched">
+      <i class="pi pi-hashtag frm-prefix-icon"></i>
       <input
         id="grp-code"
-        class="lgf-input lgf-input--has-icon"
+        class="frm-input frm-input--has-icon"
         type="text"
         formControlName="Grp_Code"
         placeholder="e.g. ASSETS"
@@ -17,7 +17,7 @@
         maxlength="20" />
     </div>
     @if (f['Grp_Code'].invalid && f['Grp_Code'].touched) {
-      <span class="lgf-error">
+      <span class="frm-error">
         <i class="pi pi-exclamation-circle"></i>
         Group code is required.
       </span>
@@ -25,15 +25,15 @@
   </div>
 
   <!-- Name -->
-  <div class="lgf-field">
-    <label class="lgf-label" for="grp-name">
-      Group Name <span class="lgf-required">*</span>
+  <div class="frm-field">
+    <label class="frm-label" for="grp-name">
+      Group Name <span class="frm-required">*</span>
     </label>
-    <div class="lgf-input-wrap" [class.lgf-input-wrap--error]="f['Grp_Name'].invalid && f['Grp_Name'].touched">
-      <i class="pi pi-tag lgf-prefix-icon"></i>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['Grp_Name'].invalid && f['Grp_Name'].touched">
+      <i class="pi pi-tag frm-prefix-icon"></i>
       <input
         id="grp-name"
-        class="lgf-input lgf-input--has-icon"
+        class="frm-input frm-input--has-icon"
         type="text"
         formControlName="Grp_Name"
         placeholder="e.g. Current Assets"
@@ -41,7 +41,7 @@
         maxlength="100" />
     </div>
     @if (f['Grp_Name'].invalid && f['Grp_Name'].touched) {
-      <span class="lgf-error">
+      <span class="frm-error">
         <i class="pi pi-exclamation-circle"></i>
         Group name is required.
       </span>
@@ -49,28 +49,28 @@
   </div>
 
   <!-- Remarks -->
-  <div class="lgf-field">
-    <label class="lgf-label" for="grp-remarks">Remarks</label>
-    <div class="lgf-input-wrap">
+  <div class="frm-field">
+    <label class="frm-label" for="grp-remarks">Remarks</label>
+    <div class="frm-input-wrap">
       <textarea
         id="grp-remarks"
-        class="lgf-textarea"
+        class="frm-textarea"
         formControlName="Remarks"
         placeholder="Optional notes about this group…"
         rows="3"
         maxlength="250">
       </textarea>
     </div>
-    <span class="lgf-hint">{{ f['Remarks'].value.length }} / 250</span>
+    <span class="frm-hint">{{ f['Remarks'].value.length }} / 250</span>
   </div>
 
   <!-- Footer Buttons -->
-  <div class="lgf-footer">
-    <button type="button" class="lgf-btn lgf-btn--cancel" (click)="cancel()" id="btn-lgf-cancel">
+  <div class="frm-footer">
+    <button type="button" class="ui-btn ui-btn--cancel" (click)="cancel()" id="btn-va-cancel">
       <i class="pi pi-times"></i>
       Cancel
     </button>
-    <button type="submit" class="lgf-btn lgf-btn--save" [disabled]="saving" id="btn-lgf-save">
+    <button type="submit" class="ui-btn ui-btn--save" [disabled]="saving" id="btn-va-save">
       @if (saving) {
         <i class="pi pi-spin pi-spinner"></i>
         Saving…

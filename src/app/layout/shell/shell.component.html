@@ -17,7 +17,8 @@
         <!-- Brand -->
         <div class="va-sb-brand">
           <span class="va-sb-brand-icon">
-            <i class="pi pi-building-columns"></i>
+            <!-- <i class="pi pi-building-columns"></i> -->
+            <img src="images/velAccount-logo.png" alt="VelAccounts Logo" class="va-sb-brand-logo" />
           </span>
           <span class="va-sb-brand-name">VelAccounts</span>
           @if (isMobile()) {
@@ -83,12 +84,12 @@
               <span class="va-sb-user-name">{{ user()?.User_Name }}</span>
               <span class="va-sb-user-role">{{ user()?.Role }}</span>
             </div>
-            <button class="va-sb-user-menu-btn"
+           <button class="va-sb-user-menu-btn"
               (click)="toggleUserMenu($event)"
               pTooltip="Options" tooltipPosition="top"
               aria-label="User options">
               <i class="pi pi-ellipsis-v"></i>
-            </button>
+            </button> 
           </div>
         </div>
 
@@ -108,19 +109,21 @@
 
       <span class="top-bar-account">{{ activeAccount.label() }}</span>
 
-      <div class="top-bar-actions">
-        <button class="top-bar-icon-btn"
+       <div class="top-bar-actions">
+        <!-- <button class="top-bar-icon-btn"
           (click)="switchAccount()"
           pTooltip="Switch account" tooltipPosition="bottom"
           aria-label="Switch account">
           <i class="pi pi-arrow-right-arrow-left"></i>
-        </button>
-        <button class="top-bar-icon-btn"
+        </button> -->
+        <!-- <button class="top-bar-icon-btn"
           (click)="toggleUserMenu($event)"
           aria-label="User menu">
-          <i class="pi pi-user"></i>
-        </button>
-      </div>
+        <i class="pi pi-user"></i> 
+        </button>    -->
+      </div> 
+
+      
     </header>
 
     <!-- Routed Pages -->

@@ -20,50 +20,50 @@
 
       <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
         
-        <div class="va-form-group">
-          <label class="va-label" for="clientCode">Client Code</label>
-          <div class="va-input-wrapper has-prefix">
-            <span class="material-icons va-prefix-icon">business</span>
-            <input id="clientCode" class="va-input" formControlName="Client_Code" autocomplete="organization" placeholder="e.g. CLI-001" />
+        <div class="frm-field">
+          <label class="frm-label" for="clientCode">Client Code</label>
+          <div class="frm-input-wrap" [class.frm-input-wrap--error]="form.controls.Client_Code.touched && form.controls.Client_Code.hasError('required')">
+            <i class="pi pi-building frm-prefix-icon"></i>
+            <input id="clientCode" class="frm-input frm-input--has-icon" formControlName="Client_Code" autocomplete="organization" placeholder="e.g. CLI-001" />
           </div>
           @if (form.controls.Client_Code.touched && form.controls.Client_Code.hasError('required')) {
-            <div class="va-error-msg">
-               <span class="material-icons">error_outline</span> Client code is required
+            <div class="frm-error">
+               <i class="pi pi-exclamation-circle"></i> Client code is required
             </div>
           }
         </div>
 
-        <div class="va-form-group">
-          <label class="va-label" for="userName">Username</label>
-          <div class="va-input-wrapper has-prefix">
-            <span class="material-icons va-prefix-icon">person</span>
-            <input id="userName" class="va-input" formControlName="User_Name" autocomplete="username" placeholder="Enter username" />
+        <div class="frm-field">
+          <label class="frm-label" for="userName">Username</label>
+          <div class="frm-input-wrap" [class.frm-input-wrap--error]="form.controls.User_Name.touched && form.controls.User_Name.hasError('required')">
+            <i class="pi pi-user frm-prefix-icon"></i>
+            <input id="userName" class="frm-input frm-input--has-icon" formControlName="User_Name" autocomplete="username" placeholder="Enter username" />
           </div>
           @if (form.controls.User_Name.touched && form.controls.User_Name.hasError('required')) {
-            <div class="va-error-msg">
-               <span class="material-icons">error_outline</span> Username is required
+            <div class="frm-error">
+               <i class="pi pi-exclamation-circle"></i> Username is required
             </div>
           }
         </div>
 
-        <div class="va-form-group">
-          <label class="va-label" for="password">Password</label>
-          <div class="va-input-wrapper has-prefix has-suffix">
-            <span class="material-icons va-prefix-icon">lock</span>
-            <input id="password" class="va-input" formControlName="Password"
+        <div class="frm-field">
+          <label class="frm-label" for="password">Password</label>
+          <div class="frm-input-wrap" [class.frm-input-wrap--error]="form.controls.Password.touched && form.controls.Password.hasError('required')">
+            <i class="pi pi-lock frm-prefix-icon"></i>
+            <input id="password" class="frm-input frm-input--has-icon" formControlName="Password"
                    [type]="hidePassword() ? 'password' : 'text'"
-                   autocomplete="current-password" placeholder="Enter password" />
+                   autocomplete="current-password" placeholder="Enter password" style="padding-right: 2.5rem;" />
             <button type="button" class="toggle-password" (click)="hidePassword.set(!hidePassword())" aria-label="Toggle visibility">
-              <span class="material-icons">{{ hidePassword() ? 'visibility_off' : 'visibility' }}</span>
+              <i class="pi" [ngClass]="hidePassword() ? 'pi-eye-slash' : 'pi-eye'"></i>
             </button>
           </div>
           @if (form.controls.Password.touched && form.controls.Password.hasError('required')) {
-            <div class="va-error-msg">
-               <span class="material-icons">error_outline</span> Password is required
+            <div class="frm-error">
+               <i class="pi pi-exclamation-circle"></i> Password is required
             </div>
           }
           @if (form.controls.Password.touched && form.controls.Password.hasError('minlength')) {
-            <div class="va-error-msg">
+            <div class="frm-error">
                <span class="material-icons">error_outline</span> Minimum 6 characters required
             </div>
           }

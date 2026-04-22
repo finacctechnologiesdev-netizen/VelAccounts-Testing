@@ -6,35 +6,35 @@
   <div class="tbl-page-header">
     <div class="tbl-page-header-left">
       <div class="tbl-page-icon">
-        <i class="pi pi-folder-open"></i>
+        <i class="pi pi-list"></i>
       </div>
       <div>
-        <h1 class="tbl-page-title">Ledger Groups</h1>
-        <p class="tbl-page-subtitle">Manage account classification groups</p>
+        <h1 class="tbl-page-title">Voucher Series</h1>
+        <p class="tbl-page-subtitle">Manage voucher numbering series</p>
       </div>
     </div>
-    <button class="ui-btn ui-btn--primary" (click)="openNew()" id="btn-new-group">
+    <button class="ui-btn ui-btn--primary" (click)="openNew()" id="btn-new-series">
       <i class="pi pi-plus"></i>
-      <span>New Group</span>
+      <span>New Series</span>
     </button>
   </div>
 
   <!-- ── Table Card ──────────────────────────────────────────── -->
   <div class="tbl-card">
     <p-table #dt [value]="loading() ? skeletonRows : items()" [columns]="cols" [exportHeader]="'exportHeader'"
-      dataKey="GrpSno" [paginator]="true" paginatorDropdownAppendTo="body" [rows]="10"
+      dataKey="SeriesSno" [paginator]="true" paginatorDropdownAppendTo="body" [rows]="10"
       [rowsPerPageOptions]="[10, 25, 50]" [showCurrentPageReport]="true"
-      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} groups"
-      [globalFilterFields]="['Grp_Code', 'Grp_Name', 'Remarks']" [sortField]="'Grp_Code'" [sortOrder]="1"
-      [rowHover]="true" stateStorage="session" stateKey="va-table-state" styleClass="p-datatable-sm tbl-datatable"
-      responsiveLayout="scroll" [tableStyle]="{ 'min-width': '40rem' }">
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} series"
+      [globalFilterFields]="['Series_Name', 'VTyp_Name', 'Prefix', 'Numbering_Method']" [sortField]="'Series_Name'"
+      [sortOrder]="1" [rowHover]="true" stateStorage="session" stateKey="vs-table-state"
+      styleClass="p-datatable-sm tbl-datatable" responsiveLayout="scroll" [tableStyle]="{ 'min-width': '40rem' }">
       <!-- ── Caption (toolbar) ─────────────────────────────── -->
       <ng-template #caption>
         <div class="tbl-toolbar">
           <!-- Global Search -->
           <p-iconfield class="tbl-search">
             <p-inputicon styleClass="pi pi-search" />
-            <input #searchInput pInputText type="text" id="va-search-input" placeholder="Search code, name, remarks…"
+            <input #searchInput pInputText type="text" id="tbl-search-input" placeholder="Search series, type, prefix…"
               class="tbl-search-input" (input)="onGlobalFilter($event)" />
             @if (searchInput.value) {
             <p-inputicon styleClass="pi pi-times tbl-search-clear" (click)="clearSearch(searchInput)" />
@@ -88,22 +88,28 @@
         } @else {
         <tr>
           <td>
-            <span class="tbl-code-badge">{{ row.Grp_Code }}</span>
+            <span class="tbl-name">{{ row.Series_Name }}</span>
           </td>
           <td>
-            <span class="tbl-name">{{ row.Grp_Name }}</span>
+            <span class="tbl-remarks-cell">{{ row.VTyp_Name }}</span>
           </td>
-          <td class="hide-sm tbl-remarks-cell" [pTooltip]="row.Remarks || ''" tooltipPosition="top" [showDelay]="600">
-            {{ row.Remarks || "—" }}
+          <td>
+            <span class="tbl-code-badge">{{ row.Prefix }}</span>
+          </td>
+          <td>
+            <span class="tbl-remarks-cell">{{ row.Numbering_Method }}</span>
+          </td>
+          <td class="hide-sm">
+            <span class="tbl-remarks-cell">{{ row.Current_No }}</span>
           </td>
           <td>
             <div class="tbl-actions">
               <button class="tbl-action-btn tbl-action-btn--edit" (click)="openEdit(row)" pTooltip="Edit"
-                tooltipPosition="top" [attr.id]="'btn-edit-' + row.GrpSno">
+                tooltipPosition="top" [attr.id]="'btn-edit-' + row.SeriesSno">
                 <i class="pi pi-pencil"></i>
               </button>
               <button class="tbl-action-btn tbl-action-btn--delete" (click)="deleteRow(row)" pTooltip="Delete"
-                tooltipPosition="top" [attr.id]="'btn-delete-' + row.GrpSno">
+                tooltipPosition="top" [attr.id]="'btn-delete-' + row.SeriesSno">
                 <i class="pi pi-trash"></i>
               </button>
             </div>
@@ -118,11 +124,11 @@
           <td [attr.colspan]="columns.length + 1">
             <div class="tbl-empty">
               <div class="tbl-empty-icon">
-                <i class="pi pi-folder-open"></i>
+                <i class="pi pi-list"></i>
               </div>
-              <p class="tbl-empty-title">No ledger groups found</p>
+              <p class="tbl-empty-title">No voucher series found</p>
               <p class="tbl-empty-hint">
-                Try changing the search filter, or create a new group.
+                Try changing the search filter, or create a new series.
               </p>
             </div>
           </td>
@@ -135,16 +141,16 @@
       </ng-template>
     </p-table>
   </div>
-  <!-- /.lg-card -->
+  <!-- /.tbl-card -->
 </div>
-<!-- /.lg-page -->
+<!-- /.tbl-page -->
 
 <!-- ── Form Dialog ─────────────────────────────────────────────── -->
-<p-dialog [(visible)]="formVisible" [header]="editRow ? 'Edit Ledger Group' : 'New Ledger Group'" [modal]="true"
+<p-dialog [(visible)]="formVisible" [header]="editRow ? 'Edit Voucher Series' : 'New Voucher Series'" [modal]="true"
   [draggable]="false" [resizable]="false" [dismissableMask]="true" [style]="{ width: '460px' }"
   [breakpoints]="{ '640px': '95vw' }" [contentStyle]="{ padding: '0' }" styleClass="frm-dialog"
   (onHide)="onFormCancelled()">
   @if (formVisible) {
-  <app-ledger-group-form [row]="editRow" (saved)="onFormSaved()" (cancelled)="onFormCancelled()" />
+  <app-voucher-series-form [row]="editRow" (saved)="onFormSaved()" (cancelled)="onFormCancelled()" />
   }
 </p-dialog>

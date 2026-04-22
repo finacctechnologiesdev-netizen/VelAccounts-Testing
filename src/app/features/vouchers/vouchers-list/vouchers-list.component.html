@@ -1,0 +1,174 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="tbl-page">
+  <!-- ── Page Header ─────────────────────────────────────────── -->
+  <div class="tbl-page-header">
+    <div class="tbl-page-header-left">
+      <div class="tbl-page-icon">
+        <i class="pi pi-receipt"></i>
+      </div>
+      <div>
+        <h1 class="tbl-page-title">Vouchers</h1>
+        <p class="tbl-page-subtitle">Manage accounting vouchers and transactions</p>
+      </div>
+    </div>
+    <button class="ui-btn ui-btn--primary" (click)="openNew()" id="btn-new-voucher">
+      <i class="pi pi-plus"></i>
+      <span>New Voucher</span>
+    </button>
+  </div>
+
+  <!-- ── Filters & Table Card ────────────────────────────────── -->
+  <div class="tbl-card">
+    <p-table #dt [value]="loading() ? skeletonRows : items()" [columns]="cols" dataKey="VouSno" [paginator]="true"
+      paginatorDropdownAppendTo="body" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" [showCurrentPageReport]="true"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} vouchers" [sortField]="'Vou_Date'"
+      [sortOrder]="-1" [rowHover]="true" stateStorage="session" stateKey="vch-table-state"
+      styleClass="p-datatable-sm tbl-datatable" responsiveLayout="scroll" [tableStyle]="{ 'min-width': '50rem' }">
+      <!-- ── Caption (Filters) ───────────────────────────────── -->
+      <ng-template #caption>
+        <div class="tbl-toolbar" style="gap: 12px;">
+
+          <!-- Series Filter -->
+          <div style="min-width: 160px;">
+            <p-select [options]="seriesOptions()" [(ngModel)]="filterState.seriesSno" optionLabel="Series_Name"
+              optionValue="SeriesSno" placeholder="All Series" [style]="{'width': '100%'}" appendTo="body" />
+          </div>
+
+          <!-- From Date Filter -->
+          <div>
+            <p-datepicker [(ngModel)]="filterState.fromDate" placeholder="From Date" dateFormat="dd/mm/yy"
+              [showIcon]="true" appendTo="body" />
+          </div>
+
+          <!-- To Date Filter -->
+          <div>
+            <p-datepicker [(ngModel)]="filterState.toDate" placeholder="To Date" dateFormat="dd/mm/yy" [showIcon]="true"
+              appendTo="body" />
+          </div>
+
+          <!-- Filter & Reset Buttons -->
+          <div style="display: flex; gap: 8px;">
+            <button class="ui-btn ui-btn--primary" (click)="load()">
+              <i class="pi pi-filter"></i>
+              <span>Filter</span>
+            </button>
+            <button class="ui-btn ui-btn--outline" (click)="resetFilters()">
+              <i class="pi pi-refresh"></i>
+              <span>Reset</span>
+            </button>
+          </div>
+
+        </div>
+      </ng-template>
+
+      <!-- ── Header ────────────────────────────────────────── -->
+      <ng-template #header let-columns>
+        <tr>
+          @for (col of columns; track col.field) {
+          <th [pSortableColumn]="col.sortable ? col.field : ''" [class.hide-sm]="col.hideOnMobile"
+            [style.width]="col.width ?? 'auto'" [class.sortable-col]="col.sortable"
+            [style.text-align]="col.alignRight ? 'right' : 'left'">
+            <div class="th-inner" [style.justify-content]="col.alignRight ? 'flex-end' : 'flex-start'">
+              {{ col.header }}
+              @if (col.sortable) {
+              <p-sortIcon [field]="col.field" />
+              }
+            </div>
+          </th>
+          }
+          <th style="width: 100px; text-align: center">Actions</th>
+        </tr>
+      </ng-template>
+
+      <!-- ── Body ──────────────────────────────────────────── -->
+      <ng-template #body let-row let-columns="columns">
+        <!-- Skeleton rows while loading -->
+        @if (row._skeleton !== undefined || loading()) {
+        <tr>
+          @for (col of columns; track col.field) {
+          <td [class.hide-sm]="col.hideOnMobile">
+            <p-skeleton height="1rem" [style]="{ 'border-radius': '6px' }" />
+          </td>
+          }
+          <td>
+            <div class="tbl-actions">
+              <p-skeleton shape="circle" size="2rem" />
+              <p-skeleton shape="circle" size="2rem" />
+            </div>
+          </td>
+        </tr>
+        } @else {
+        <tr>
+          <td>
+            <span class="tbl-remarks-cell">{{ row.Vou_Date | date:"dd/MM/yyyy" }}</span>
+          </td>
+          <td>
+            <span class="tbl-code-badge">{{ row.Vou_No }}</span>
+          </td>
+          <td class="hide-sm">
+            <span class="tbl-remarks-cell">{{ row.VoucherType }}</span>
+          </td>
+          <td>
+            <span class="tbl-name">{{ row.Led_Name }}</span>
+          </td>
+          <td style="text-align: right;">
+            <span
+              [ngStyle]="{'color': row.Cash_Type === 'IN' ? 'var(--color-success)' : 'var(--color-error)', 'font-weight': '600'}">
+              {{ row.Amount | number:"1.2-2" }}
+            </span>
+          </td>
+          <td class="hide-sm">
+            <span class="tbl-remarks-cell">{{ row.Narration || "—" }}</span>
+          </td>
+          <td>
+            <div class="tbl-actions">
+              <button class="tbl-action-btn tbl-action-btn--edit" (click)="openEdit(row)" pTooltip="Edit"
+                tooltipPosition="top">
+                <i class="pi pi-pencil"></i>
+              </button>
+              <button class="tbl-action-btn tbl-action-btn--delete" (click)="deleteRow(row)" pTooltip="Delete"
+                tooltipPosition="top">
+                <i class="pi pi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        }
+      </ng-template>
+
+      <!-- ── Empty state ────────────────────────────────────── -->
+      <ng-template #emptymessage let-columns>
+        <tr>
+          <td [attr.colspan]="columns.length + 1">
+            <div class="tbl-empty">
+              <div class="tbl-empty-icon">
+                <i class="pi pi-receipt"></i>
+              </div>
+              <p class="tbl-empty-title">No vouchers found</p>
+              <p class="tbl-empty-hint">
+                Adjust your filters or create a new voucher.
+              </p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <!-- ── Paginator left ─────────────────────────────────── -->
+      <ng-template #paginatorleft>
+        <span class="tbl-page-info hide-xs"> {{ items().length }} total </span>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- ── Form Dialog ─────────────────────────────────────────────── -->
+<p-dialog [(visible)]="formVisible" [header]="editRow ? 'Edit Voucher' : 'New Voucher'" [modal]="true"
+  [focusOnShow]="false" [draggable]="false" [resizable]="false" [dismissableMask]="true" [style]="{ width: '560px' }"
+  [breakpoints]="{ '640px': '95vw' }" [contentStyle]="{ padding: '0' }" styleClass="frm-dialog"
+  (onHide)="onFormCancelled()">
+  @if (formVisible) {
+  <app-voucher-form [row]="editRow" (saved)="onFormSaved()" (cancelled)="onFormCancelled()" />
+  }
+</p-dialog>

@@ -1,104 +1,29 @@
+import { Component, inject, input, output, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { DatePickerModule } from 'primeng/datepicker';
 
-import { Component, inject, OnInit, signal } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from "@angular/material/dialog";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatInputModule } from "@angular/material/input";
-import { MatSelectModule } from "@angular/material/select";
-import { MatDatepickerModule } from "@angular/material/datepicker";
-import { MatButtonModule } from "@angular/material/button";
-import { MatSnackBar } from "@angular/material/snack-bar";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { VouchersService, VoucherSeriesService, LedgersService } from "../../../core/services/api.services";
-import { Voucher, VoucherSeries, Ledger } from "../../../core/models";
+import { VouchersService, VoucherSeriesService, LedgersService } from '../../../core/services/api.services';
+import { Voucher, VoucherSeries, Ledger } from '../../../core/models';
 
 @Component({
-  selector: "app-voucher-form",
+  selector: 'app-voucher-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatDialogModule, MatFormFieldModule,
-            MatInputModule, MatSelectModule, MatDatepickerModule, MatButtonModule,
-            MatProgressSpinnerModule],
-  template: `
-    <h2 mat-dialog-title>{{ row ? "Edit" : "New" }} Voucher</h2>
-    <mat-dialog-content>
-      <form [formGroup]="form" class="dialog-form">
-        <!-- Series (only on new) -->
-        @if (!row) {
-          <mat-form-field appearance="outline">
-            <mat-label>Series</mat-label>
-            <mat-select formControlName="SeriesSno" (selectionChange)="onSeriesChange($event.value)">
-              @for (s of series(); track s.SeriesSno) {
-                <mat-option [value]="s.SeriesSno">{{ s.Series_Name }} ({{ s.Numbering_Method }})</mat-option>
-              }
-            </mat-select>
-            <mat-error>Required</mat-error>
-          </mat-form-field>
-        }
-
-        <!-- Vou_No — shown for SEMI and MANUAL; readonly hint for AUTO -->
-        @if (showVouNo()) {
-          <mat-form-field appearance="outline">
-            <mat-label>Voucher No</mat-label>
-            <input matInput formControlName="Vou_No"
-                   [readonly]="selectedSeries()?.Numbering_Method === 'SEMI'" />
-            <mat-hint>{{ selectedSeries()?.Numbering_Method === "SEMI" ? "Suggested — you can edit" : "Enter manually" }}</mat-hint>
-            <mat-error>Required for this series</mat-error>
-          </mat-form-field>
-        } @else if (!row) {
-          <div class="auto-hint">
-            <span>Voucher No: <strong>{{ nextNoPreview() || "Auto-generated on save" }}</strong></span>
-          </div>
-        }
-
-        <mat-form-field appearance="outline">
-          <mat-label>Date</mat-label>
-          <input matInput [matDatepicker]="dp" formControlName="Vou_Date" />
-          <mat-datepicker-toggle matSuffix [for]="dp" />
-          <mat-datepicker #dp />
-          <mat-error>Required</mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Ledger</mat-label>
-          <mat-select formControlName="LedSno">
-            @for (l of ledgers(); track l.LedSno) {
-              <mat-option [value]="l.LedSno">{{ l.Led_Name }}</mat-option>
-            }
-          </mat-select>
-          <mat-error>Required</mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Amount</mat-label>
-          <input matInput type="number" formControlName="Amount" min="0.01" step="0.01" />
-          <mat-error>Required and must not be zero</mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Narration</mat-label>
-          <textarea matInput formControlName="Narration" rows="2"></textarea>
-        </mat-form-field>
-      </form>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button mat-flat-button color="primary" (click)="save()" [disabled]="saving">
-        @if (saving) { <mat-spinner diameter="18" /> } @else { Save }
-      </button>
-    </mat-dialog-actions>
-  `,
-  styles: [`.dialog-form { display:flex; flex-direction:column; gap:4px; padding-top:8px; min-width:420px; }
-            .auto-hint { background:#f3f4f6; border-radius:8px; padding:10px 14px; margin-bottom:4px; font-size:14px; }`],
+  imports: [CommonModule, ReactiveFormsModule, DatePickerModule],
+  templateUrl: './voucher-form.component.html',
 })
 export class VoucherFormComponent implements OnInit {
-  private svc       = inject(VouchersService);
-  private seriesSvc = inject(VoucherSeriesService);
-  private ledSvc    = inject(LedgersService);
-  private fb        = inject(FormBuilder);
-  private snack     = inject(MatSnackBar);
-  private ref       = inject(MatDialogRef<VoucherFormComponent>);
-  readonly row      = inject<Voucher | undefined>(MAT_DIALOG_DATA);
+
+  /** Pass a Voucher to edit; undefined → create mode. */
+  readonly row = input<Voucher | undefined>(undefined);
+
+  readonly saved     = output<void>();
+  readonly cancelled = output<void>();
+
+  private readonly svc       = inject(VouchersService);
+  private readonly seriesSvc = inject(VoucherSeriesService);
+  private readonly ledSvc    = inject(LedgersService);
+  private readonly fb        = inject(FormBuilder);
 
   saving         = false;
   series         = signal<VoucherSeries[]>([]);
@@ -111,8 +36,8 @@ export class VoucherFormComponent implements OnInit {
     return m === "SEMI" || m === "MANUAL";
   };
 
-  form = this.fb.nonNullable.group({
-    SeriesSno: [0],
+  form = this.fb.group({
+    SeriesSno: [0, Validators.required],
     Vou_No:    [""],
     Vou_Date:  [new Date(), Validators.required],
     LedSno:    [0, Validators.required],
@@ -123,18 +48,26 @@ export class VoucherFormComponent implements OnInit {
   ngOnInit() {
     this.seriesSvc.list().subscribe(r => this.series.set(r.data ?? []));
     this.ledSvc.list().subscribe(r => this.ledgers.set(r.data ?? []));
-    if (this.row) {
+    
+    const r = this.row();
+    if (r) {
       this.form.patchValue({
-        ...this.row,
-        Vou_Date: new Date(this.row.Vou_Date),
+        SeriesSno: 0,
+        Vou_No: r.Vou_No,
+        Vou_Date: new Date(r.Vou_Date),
+        LedSno: r.LedSno,
+        Amount: r.Amount,
+        Narration: r.Narration,
       });
     }
   }
 
-  onSeriesChange(seriesSno: number) {
+  onSeriesChange() {
+    const seriesSno = this.form.controls.SeriesSno.value ?? 0;
     const s = this.series().find(x => x.SeriesSno === seriesSno) ?? null;
     this.selectedSeries.set(s);
     if (!s) return;
+    
     if (s.Numbering_Method === "SEMI") {
       this.seriesSvc.getNextNumber(seriesSno).subscribe(r => {
         const preview = r.data?.PreviewVouNo ?? "";
@@ -150,35 +83,53 @@ export class VoucherFormComponent implements OnInit {
 
   save() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+
     const v = this.form.getRawValue();
-    if (!v.Amount || v.Amount === 0) {
-      this.snack.open("Amount cannot be zero.", "OK"); return;
+
+    // Additional validations
+    if (!this.row()) {
+      if (v.SeriesSno === 0 || v.SeriesSno === null) {
+        this.form.controls.SeriesSno.setErrors({ 'required': true });
+      }
     }
+    if (v.LedSno === 0 || v.LedSno === null) {
+      this.form.controls.LedSno.setErrors({ 'required': true });
+    }
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+
     this.saving = true;
     const dateStr = (v.Vou_Date as unknown as Date).toISOString().split("T")[0];
+    const r = this.row();
 
-    if (this.row) {
-      this.svc.update(this.row.VouSno, {
-        Vou_Date: dateStr, LedSno: v.LedSno,
-        Amount: v.Amount, Narration: v.Narration,
-        CurrentRowVer: this.row.CurrentRowVer,
+    if (r) {
+      this.svc.update(r.VouSno, {
+        Vou_Date: dateStr, 
+        LedSno: v.LedSno!,
+        Amount: v.Amount!, 
+        Narration: v.Narration ?? undefined,
+        CurrentRowVer: r.CurrentRowVer,
       }).subscribe({
-        next: () => { this.snack.open("Saved.", "OK"); this.ref.close(true); },
+        next: () => { this.saving = false; this.saved.emit(); },
         error: () => { this.saving = false; },
       });
     } else {
       this.svc.create({
-        SeriesSno: v.SeriesSno, Vou_Date: dateStr,
-        LedSno: v.LedSno, Amount: v.Amount,
-        Narration: v.Narration,
-        Vou_No: this.showVouNo() ? v.Vou_No : undefined,
+        SeriesSno: v.SeriesSno!, 
+        Vou_Date: dateStr,
+        LedSno: v.LedSno!, 
+        Amount: v.Amount!,
+        Narration: v.Narration ?? undefined,
+        Vou_No: this.showVouNo() ? (v.Vou_No ?? undefined) : undefined,
       }).subscribe({
-        next: res => {
-          this.snack.open(`Saved. Voucher No: ${res.data?.Vou_No}`, "OK", { duration: 5000 });
-          this.ref.close(true);
+        next: () => {
+          this.saving = false; this.saved.emit();
         },
         error: () => { this.saving = false; },
       });
     }
   }
+
+  cancel(): void { this.cancelled.emit(); }
+
+  get f() { return this.form.controls; }
 }
