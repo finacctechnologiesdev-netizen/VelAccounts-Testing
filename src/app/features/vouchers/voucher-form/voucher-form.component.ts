@@ -5,11 +5,11 @@ import { DatePickerModule } from 'primeng/datepicker';
 
 import { VouchersService, VoucherSeriesService, LedgersService } from '../../../core/services/api.services';
 import { Voucher, VoucherSeries, Ledger } from '../../../core/models';
-
+import { InputBehaviorDirective } from '../../../core/directives/input-behavior.directive';
 @Component({
   selector: 'app-voucher-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DatePickerModule],
+  imports: [CommonModule, ReactiveFormsModule, DatePickerModule, InputBehaviorDirective],
   templateUrl: './voucher-form.component.html',
 })
 export class VoucherFormComponent implements OnInit {

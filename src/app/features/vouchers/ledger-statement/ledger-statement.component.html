@@ -88,7 +88,7 @@
       <p-skeleton width="60%" height="2rem" />
       } @else {
       <p class="ls-sum-value" [ngClass]="summary()!.OpeningBalance < 0 ? 'ls-value-debit' : 'ls-value-credit'">
-        {{ summary()!.OpeningBalance | number:"1.2-2" }}
+        ₹{{ summary()!.OpeningBalance | number:"1.2-2" }}
       </p>
       }
     </div>
@@ -99,7 +99,7 @@
       @if (loading()) {
       <p-skeleton width="60%" height="2rem" />
       } @else {
-      <p class="ls-sum-value ls-value-debit">{{ totalDebit() | number:"1.2-2" }}</p>
+      <p class="ls-sum-value ls-value-debit">₹{{ totalDebit() | number:"1.2-2" }}</p>
       }
     </div>
 
@@ -109,7 +109,7 @@
       @if (loading()) {
       <p-skeleton width="60%" height="2rem" />
       } @else {
-      <p class="ls-sum-value ls-value-credit">{{ totalCredit() | number:"1.2-2" }}</p>
+      <p class="ls-sum-value ls-value-credit">₹{{ totalCredit() | number:"1.2-2" }}</p>
       }
     </div>
 
@@ -120,7 +120,7 @@
       <p-skeleton width="60%" height="2rem" />
       } @else {
       <p class="ls-sum-value" [ngClass]="summary()!.ClosingBalance < 0 ? 'ls-value-debit' : 'ls-value-credit'">
-        {{ summary()!.ClosingBalance | number:"1.2-2" }}
+        ₹{{ summary()!.ClosingBalance | number:"1.2-2" }}
       </p>
       }
     </div>
@@ -171,7 +171,7 @@
           </td>
           <td style="text-align: right;">
             <span style="font-weight: 600;" [ngClass]="row.RunningBalance < 0 ? 'ls-value-debit' : 'ls-value-credit'">
-              {{ row.RunningBalance | number:"1.2-2" }}
+             {{ row.RunningBalance | number:"1.2-2" }}
             </span>
           </td>
         </tr>

@@ -1,4 +1,28 @@
 <form [formGroup]="form" (ngSubmit)="save()" class="frm-layout" novalidate>
+  <!-- Ledger -->
+  <div class="frm-field">
+    <label class="frm-label" for="vch-ledger">
+      Ledger <span class="frm-required">*</span>
+    </label>
+    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['LedSno'].invalid && f['LedSno'].touched">
+      <select 
+        id="vch-ledger" 
+        class="frm-input" 
+        formControlName="LedSno"
+        [class.placeholder]="f['LedSno'].value === 0">
+        <option [ngValue]="0" disabled>Select Ledger</option>
+        @for (l of ledgers(); track l.LedSno) {
+          <option [ngValue]="l.LedSno">{{ l.Led_Name }}</option>
+        }
+      </select>
+    </div>
+    @if (f['LedSno'].invalid && f['LedSno'].touched) {
+      <span class="frm-error">
+        <i class="pi pi-exclamation-circle"></i>
+        Ledger is required.
+      </span>
+    }
+  </div>
 
   <!-- Series Selection (only on new, read from row state) -->
   @if (!row()) {
@@ -95,6 +119,7 @@
           class="frm-input frm-input--has-icon"
           type="number"
           min="0.01" step="0.01"
+          appInputBehavior
           formControlName="Amount" />
       </div>
       @if (f['Amount'].invalid && f['Amount'].touched) {
@@ -106,30 +131,6 @@
     </div>
   </div>
 
-  <!-- Ledger -->
-  <div class="frm-field">
-    <label class="frm-label" for="vch-ledger">
-      Ledger <span class="frm-required">*</span>
-    </label>
-    <div class="frm-input-wrap" [class.frm-input-wrap--error]="f['LedSno'].invalid && f['LedSno'].touched">
-      <select 
-        id="vch-ledger" 
-        class="frm-input" 
-        formControlName="LedSno"
-        [class.placeholder]="f['LedSno'].value === 0">
-        <option [ngValue]="0" disabled>Select Ledger</option>
-        @for (l of ledgers(); track l.LedSno) {
-          <option [ngValue]="l.LedSno">{{ l.Led_Name }}</option>
-        }
-      </select>
-    </div>
-    @if (f['LedSno'].invalid && f['LedSno'].touched) {
-      <span class="frm-error">
-        <i class="pi pi-exclamation-circle"></i>
-        Ledger is required.
-      </span>
-    }
-  </div>
 
   <!-- Narration -->
   <div class="frm-field">

@@ -80,7 +80,7 @@ export class LedgersListComponent implements OnInit {
   load(): void {
     this.loading.set(true);
     this.svc.list().subscribe({
-      next:  r  => { this.items.set(r.data ?? []); this.loading.set(false); },
+      next:  r  => { this.items.set(r.data ?? []); this.loading.set(false); console.log(r); },
       error: () => this.loading.set(false),
     });
   }

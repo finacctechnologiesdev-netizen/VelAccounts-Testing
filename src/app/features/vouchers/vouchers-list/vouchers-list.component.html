@@ -116,7 +116,7 @@
           <td style="text-align: right;">
             <span
               [ngStyle]="{'color': row.Cash_Type === 'IN' ? 'var(--color-success)' : 'var(--color-error)', 'font-weight': '600'}">
-              {{ row.Amount | number:"1.2-2" }}
+              ₹{{ row.Amount | number:"1.2-2" }}
             </span>
           </td>
           <td class="hide-sm">

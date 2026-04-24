@@ -1,42 +1,192 @@
-<div class="dashboard-container">
-  <!-- Welcome Banner -->
-  <!-- <div class="welcome-banner">
-    <div class="banner-content">
-      <div class="greeting">
-        <span class="material-icons headline-icon">waving_hand</span>
-        <h2>Welcome back, <span class="highlight">{{ user()?.User_Name }}</span>!</h2>
+<div class="dash-root">
+
+  @if (loading()) {
+    <div class="dash-loading">
+      <span class="material-icons dash-spinner">autorenew</span>
+      <p>Loading dashboard…</p>
+    </div>
+  } @else {
+
+    <!-- ── Header ── -->
+    <header class="dash-header">
+      <div class="dash-header-left">
+        <div class="tbl-page-icon"><i class="material-icons">dashboard</i></div>
+        <div>
+          <h1 class="tbl-page-title">Overview</h1>
+          <p class="tbl-page-subtitle">{{ account.currentAccount()?.Acc_Name }}</p>
+        </div>
       </div>
-      <p class="subtitle">
-        You are currently working in the <strong>{{ account.currentAccount()?.Acc_Name }}</strong> book of accounts.
-      </p>
-    </div>
-    <div class="banner-decoration">
-      <span class="material-icons decor-icon">account_balance</span>
-    </div>
-  </div> -->
+      <div class="dash-filter-group">
+        <button class="dash-filter-btn" [class.is-active]="selectedFilter() === 'TODAY'" (click)="setFilter('TODAY')">Today</button>
+        <button class="dash-filter-btn" [class.is-active]="selectedFilter() === '7DAYS'" (click)="setFilter('7DAYS')">Last 7 Days</button>
+        <button class="dash-filter-btn" [class.is-active]="selectedFilter() === 'ALL'"   (click)="setFilter('ALL')">All Time</button>
+      </div>
+    </header>
 
-  <!-- Quick Actions Grid -->
-  <div class="module-section">
-    <div class="section-header">
-      <h3>Quick Access Modules</h3>
-      <p>Navigate quickly to your most used functions</p>
+    <!-- ── KPI Row ── -->
+    <div class="kpi-row">
+
+      <div class="kpi-card kpi-receipt">
+        <div class="kpi-icon"><span class="material-icons">south_west</span></div>
+        <div class="kpi-body">
+          <p class="kpi-label">Total Receipts</p>
+          <p class="kpi-value">₹{{ receiptTotal() | number:'1.0-0' }}</p>
+          <p class="kpi-sub">{{ receiptCount() }} transactions</p>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-payment">
+        <div class="kpi-icon"><span class="material-icons">north_east</span></div>
+        <div class="kpi-body">
+          <p class="kpi-label">Total Payments</p>
+          <p class="kpi-value">₹{{ paymentTotal() | number:'1.0-0' }}</p>
+          <p class="kpi-sub">{{ paymentCount() }} transactions</p>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-ledger">
+        <div class="kpi-icon"><span class="material-icons">account_tree</span></div>
+        <div class="kpi-body">
+          <p class="kpi-label">Active Ledgers</p>
+          <p class="kpi-value">{{ totalLedgers() }}</p>
+          <p class="kpi-sub">Configured accounts</p>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-voucher">
+        <div class="kpi-icon"><span class="material-icons">receipt_long</span></div>
+        <div class="kpi-body">
+          <p class="kpi-label">Total Vouchers</p>
+          <p class="kpi-value">{{ totalVouchers() }}</p>
+          <p class="kpi-sub">All entries</p>
+        </div>
+      </div>
+
+      <!-- Balance Summary — brand gradient card -->
+      <div class="kpi-card kpi-balance">
+        <div class="kpi-body">
+          <p class="kpi-label">Balance Summary</p>
+          <p class="kpi-value" [class.value-pos]="receiptTotal() >= paymentTotal()" [class.value-neg]="receiptTotal() < paymentTotal()">
+            ₹{{ (receiptTotal() - paymentTotal()) | number:'1.0-0' }}
+          </p>
+          <p class="kpi-sub">
+            <span class="sub-pos">▲ ₹{{ receiptTotal() | number:'1.0-0' }}</span>
+            &nbsp;
+            <span class="sub-neg">▼ ₹{{ paymentTotal() | number:'1.0-0' }}</span>
+          </p>
+        </div>
+        <!-- <div class="kpi-balance-bar"></div> -->
+      </div>
+
     </div>
 
-    <div class="card-grid">
-      @for (link of quickLinks; track link.route) {
-        <div class="module-card {{ link.colorClass }}" [routerLink]="link.route">
-          <div class="card-icon-wrapper">
-            <span class="material-icons">{{ link.icon }}</span>
+    <!-- ── Middle: Chart + Actions ── -->
+    <div class="mid-row">
+
+      <!-- Chart -->
+      <div class="tbl-card chart-card">
+        <div class="chart-header">
+          <div>
+            <h3 class="section-title">Receipts vs Payments</h3>
+            <p class="section-sub">Current year — {{ currentYear }}</p>
           </div>
-          <div class="card-details">
-            <h4>{{ link.label }}</h4>
-            <p>{{ link.description }}</p>
-          </div>
-          <div class="card-arrow">
-            <span class="material-icons">east</span>
+          <div class="toggle-group">
+            <button class="toggle-btn" [class.is-active]="chartType() === 'bar'"  (click)="setChartType('bar')">
+              <span class="material-icons">bar_chart</span> Bar
+            </button>
+            <button class="toggle-btn" [class.is-active]="chartType() === 'line'" (click)="setChartType('line')">
+              <span class="material-icons">show_chart</span> Line
+            </button>
           </div>
         </div>
-      }
+        <div echarts [options]="chartOptions()" class="chart-echarts"></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="tbl-card actions-card">
+        <h3 class="section-title actions-title">Quick Actions</h3>
+        <div class="action-list">
+          <a class="action-item action-primary" routerLink="/app/vouchers">
+            <span class="material-icons">south_west</span> New Receipt
+          </a>
+          <a class="action-item" routerLink="/app/vouchers">
+            <span class="material-icons">north_east</span> New Payment
+          </a>
+          <a class="action-item" routerLink="/app/vouchers">
+            <span class="material-icons">receipt_long</span> View All Vouchers
+          </a>
+          <a class="action-item" routerLink="/app/ledger-statement">
+            <span class="material-icons">bar_chart</span> Ledger Statement
+          </a>
+          <a class="action-item" routerLink="/app/ledgers">
+            <span class="material-icons">account_tree</span> Manage Ledgers
+          </a>
+          <a class="action-item" routerLink="/app/ledger-groups">
+            <span class="material-icons">folder_open</span> Ledger Groups
+          </a>
+        </div>
+      </div>
+
     </div>
-  </div>
+
+    <!-- ── Recent Transactions ── -->
+    <div class="tbl-card txn-card">
+      <div class="txn-header">
+        <div>
+          <h3 class="section-title">Recent Transactions</h3>
+          <p class="section-sub">Last {{ recentVouchers().length }} entries in selected period</p>
+        </div>
+        <button class="ui-btn ui-btn--outline" routerLink="/app/vouchers">
+          View All <span class="material-icons">arrow_forward</span>
+        </button>
+      </div>
+
+      <div class="txn-table-wrap">
+        <table class="txn-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Voucher #</th>
+              <th>Ledger</th>
+              <th>Type</th>
+              <th class="col-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of recentVouchers(); track v.VouSno) {
+              <tr>
+                <td class="col-date">{{ v.Vou_Date | date:'dd MMM yyyy' }}</td>
+                <td><span class="tbl-code-badge">{{ v.Vou_No }}</span></td>
+                <td class="tbl-name">{{ v.Led_Name }}</td>
+                <td>
+                  <span class="type-badge"
+                    [class.badge-in]="v.VoucherType?.trim() === 'Receipt'"
+                    [class.badge-out]="v.VoucherType?.trim() === 'Payment'">
+                    {{ v.VoucherType?.trim() || '—' }}
+                  </span>
+                </td>
+                <td 
+                  [class.amount-in]="v.VoucherType?.trim() === 'Receipt'"
+                  [class.amount-out]="v.VoucherType?.trim() === 'Payment'">
+                  {{ v.VoucherType?.trim() === 'Payment' ? '–' : '+' }}₹{{ v.Amount | number:'1.0-0' }}
+                </td>
+              </tr>
+            }
+            @if (recentVouchers().length === 0) {
+              <tr>
+                <td colspan="5">
+                  <div class="tbl-empty">
+                    <div class="tbl-empty-icon"><i class="material-icons">receipt</i></div>
+                    <p class="tbl-empty-title">No transactions</p>
+                    <p class="tbl-empty-hint">Try changing the filter period.</p>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  }
 </div>
